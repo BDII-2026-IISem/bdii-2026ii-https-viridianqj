@@ -1,0 +1,51 @@
+id,sku,nombre,descripcion,precio,is_active,created_at,updated_at
+1,PROD-0001,Empanadas de Carne (x3),Tres empanadas fritas rellenas de carne,9500.00,ACTIVE,2025-09-10 11:01:46,2026-04-11 04:22:40
+2,PROD-0002,Agua Botella 600ml,Agua sin gas,4500.00,ACTIVE,2025-09-06 18:52:50,2026-05-05 04:28:05
+3,PROD-0003,Combo Brasa Familiar,Selección de carnes para 4 personas con guarniciones,121000.00,ACTIVE,2025-10-12 12:21:44,2026-08-10 08:39:34
+4,PROD-0004,Limonada de Coco,Limonada con crema de coco,10000.00,ACTIVE,2025-10-14 23:59:46,2026-03-04 10:11:16
+5,PROD-0005,Mojarra Frita,"Mojarra entera frita, servida con patacón",34000.00,ACTIVE,2025-09-24 16:47:09,2025-10-26 11:43:47
+6,PROD-0006,Ceviche de Camarón,Ceviche fresco de camarón estilo costeño,29000.00,ACTIVE,2025-10-19 01:42:17,2026-03-01 11:07:48
+7,PROD-0007,Filete de Pescado a la Plancha,Filete de mojarra o bocachico a la plancha,30500.00,ACTIVE,2025-10-30 02:58:38,2025-11-27 13:15:31
+8,PROD-0008,Patacones,Porción de patacones fritos,6500.00,ACTIVE,2025-09-17 00:23:22,2026-07-08 01:27:15
+9,PROD-0009,Jugo de Corozo,Jugo natural de corozo,6500.00,INACTIVE,2025-10-11 22:37:42,2025-10-27 04:03:59
+10,PROD-0010,Jugo de Lulo,Jugo natural de lulo,7000.00,ACTIVE,2025-10-25 04:24:38,2026-06-04 17:23:57
+11,PROD-0011,Combo Ejecutivo Almuerzo,Proteína + guarniciones + jugo natural,22500.00,ACTIVE,2025-10-04 00:32:33,2026-07-01 01:09:54
+12,PROD-0012,Torta de Chocolate,Porción de torta de chocolate casera,11500.00,ACTIVE,2025-10-27 07:15:13,2026-09-01 18:49:30
+13,PROD-0013,Jugo de Maracuyá,Jugo natural de maracuyá,7000.00,ACTIVE,2025-09-27 05:00:14,2026-03-30 07:55:14
+14,PROD-0014,Churrasco Argentino,Corte de res angosto a la parrilla,39000.00,ACTIVE,2025-09-06 21:22:12,2026-06-17 20:16:08
+15,PROD-0015,Bandeja Brasa Mixta,"Carne de res, pollo y chorizo a la brasa con guarniciones",43000.00,ACTIVE,2025-10-14 06:25:05,2026-02-01 19:02:26
+16,PROD-0016,Salchipapa BrasaGo,Papas fritas con salchicha y salsas,15500.00,ACTIVE,2025-09-03 04:34:31,2026-09-03 12:03:19
+17,PROD-0017,Ensalada Fresca,Mezcla de vegetales frescos de la región,9000.00,ACTIVE,2025-10-30 07:32:44,2025-12-14 18:57:26
+18,PROD-0018,Camarones al Ajillo,Camarones salteados en salsa de ajo,40000.00,ACTIVE,2025-09-28 21:45:53,2025-11-18 03:18:10
+19,PROD-0019,Frijoles Guajiros,Frijoles guisados estilo guajiro,8000.00,ACTIVE,2025-10-08 22:58:43,2026-09-12 09:13:12
+20,PROD-0020,Combo Infantil,"Porción reducida con proteína, papas y jugo",16000.00,ACTIVE,2025-10-14 14:40:57,2026-03-19 14:16:41
+21,PROD-0021,Tostones con Hogao,Tostones bañados en hogao criollo,8000.00,ACTIVE,2025-10-12 19:11:17,2026-09-13 08:06:25
+22,PROD-0022,Suero Costeño,Porción de suero costeño,4500.00,ACTIVE,2025-10-05 19:59:50,2026-06-27 23:26:14
+23,PROD-0023,Combo Pareja,Selección de carnes y guarniciones para 2 personas,68000.00,ACTIVE,2025-09-15 15:40:16,2025-10-17 21:08:40
+24,PROD-0024,Morcilla Criolla,Morcilla tradicional a la parrilla,10000.00,ACTIVE,2025-09-23 15:42:44,2025-09-28 08:08:53
+25,PROD-0025,Cheesecake de Maracuyá,Cheesecake con salsa de maracuyá,14000.00,ACTIVE,2025-09-18 16:53:22,2025-12-29 17:51:55
+26,PROD-0026,Papa Criolla,Papas criollas doradas,7000.00,ACTIVE,2025-10-11 16:12:57,2026-05-07 06:57:53
+27,PROD-0027,Cerveza Artesanal BrasaGo,Cerveza artesanal de la casa,13000.00,ACTIVE,2025-10-01 22:25:08,2025-11-19 16:05:04
+28,PROD-0028,Punta de Anca a la Brasa,"Corte de res a la brasa, término a elección",39000.00,ACTIVE,2025-10-30 23:05:43,2026-07-12 07:49:30
+29,PROD-0029,Helado Artesanal,"Helado artesanal, varios sabores",9000.00,INACTIVE,2025-10-15 08:03:25,2026-08-14 05:53:58
+30,PROD-0030,Yuca Frita,Porción de yuca frita crocante,7000.00,ACTIVE,2025-10-09 02:18:32,2026-03-12 16:35:12
+31,PROD-0031,Ron con Coca-Cola,Coctel clásico,15000.00,ACTIVE,2025-10-17 18:01:46,2026-06-21 02:02:12
+32,PROD-0032,Arroz con Coco,Arroz costeño cocido con coco,8000.00,ACTIVE,2025-09-07 12:55:52,2025-11-27 14:44:42
+33,PROD-0033,Alitas BBQ (8 unidades),Alitas de pollo bañadas en salsa BBQ,24000.00,ACTIVE,2025-10-04 00:22:56,2026-05-25 07:33:58
+34,PROD-0034,Sancocho de Chivo,Sancocho típico de La Guajira,26000.00,ACTIVE,2025-10-26 00:42:05,2025-12-23 18:35:33
+35,PROD-0035,Friche Guajiro,Plato tradicional wayuu de chivo,30500.00,ACTIVE,2025-10-30 14:06:41,2025-11-09 11:47:48
+36,PROD-0036,Chuleta de Cerdo a la Parrilla,Chuleta de cerdo con especias de la casa,28000.00,ACTIVE,2025-10-30 14:53:04,2026-03-25 17:35:46
+37,PROD-0037,Costillas de Cerdo BBQ,Costillas ahumadas bañadas en salsa BBQ de la casa,36500.00,ACTIVE,2025-10-04 17:28:34,2026-05-26 15:07:30
+38,PROD-0038,Chicharrón Costeño,Chicharrón crocante estilo costa caribe,15000.00,ACTIVE,2025-09-12 04:47:35,2026-08-07 21:27:31
+39,PROD-0039,Cerveza Nacional,Cerveza nacional 330ml,5500.00,ACTIVE,2025-10-17 15:24:06,2026-04-23 13:04:03
+40,PROD-0040,Costilla de Res a la Brasa,Costilla de res ahumada a la brasa,41000.00,ACTIVE,2025-09-10 22:06:51,2026-06-29 01:34:53
+41,PROD-0041,Michelada BrasaGo,Michelada con cerveza artesanal,14500.00,ACTIVE,2025-10-17 11:16:11,2026-09-04 08:45:42
+42,PROD-0042,Arepa de Huevo,Arepa rellena de huevo frita,7500.00,INACTIVE,2025-09-03 05:49:00,2025-11-21 22:33:32
+43,PROD-0043,Chorizo Santarrosano,Chorizo artesanal a la brasa,13000.00,ACTIVE,2025-10-06 02:56:39,2025-12-02 01:22:43
+44,PROD-0044,Gaseosa 400ml,Gaseosa variedad de sabores,5000.00,INACTIVE,2025-10-22 06:35:03,2026-02-15 00:58:53
+45,PROD-0045,Medio Pollo a la Brasa,Media porción de pollo asado a la brasa,25000.00,ACTIVE,2025-09-26 08:26:33,2026-04-15 16:15:05
+46,PROD-0046,Pollo Entero a la Brasa,Pollo completo marinado y asado a la brasa,45000.00,ACTIVE,2025-10-05 12:49:55,2026-08-01 07:48:53
+47,PROD-0047,Bienmesabe Guajiro,Postre tradicional a base de coco,11000.00,ACTIVE,2025-10-19 19:22:08,2026-02-24 20:04:09
+48,PROD-0048,Sopa de Guandú con Carne Salada,Sopa tradicional guajira,19000.00,ACTIVE,2025-09-19 22:43:23,2026-07-29 23:55:12
+49,PROD-0049,Lomo de Cerdo en Salsa de la Casa,Lomo de cerdo bañado en salsa especial BrasaGo,31500.00,ACTIVE,2025-09-23 00:20:28,2025-12-09 15:42:42
+50,PROD-0050,Guacamole,Guacamole casero con totopos,11500.00,ACTIVE,2025-09-03 19:31:43,2025-09-14 15:55:15
