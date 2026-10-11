@@ -6,7 +6,7 @@ Proyecto BrasaGo
 # 1. Introducción
 Esta bitácora documenta el proceso de creación de la base de datos del proyecto BrasaGo y la ejecución de un conjunto de consultas SQL representativas (consultas combinadas, agrupaciones y subconsultas) en los cuatro motores exigidos por el curso: MySQL, PostgreSQL, SQL Server y Oracle.
 Para cada motor se presenta la misma batería de 8 consultas (con sus variantes), señalando las diferencias de sintaxis relevantes entre motores, junto con la evidencia visual de su ejecución. Cada consulta incluye además un **contexto de negocio**: el motivo operativo real de BrasaGo que llevó a ejecutar ese cambio o esa lectura sobre la base de datos.
-Finalmente, la sección 6 presenta un patrón de auditoría inmutable (triggers) sobre `pedidos`, `detalles_pedidos` y `productos`, implementado en los cuatro motores.
+La sección 6 presenta un patrón de auditoría inmutable (triggers) sobre `pedidos`, `detalles_pedidos` y `productos`, implementado en los cuatro motores. Finalmente, la sección 7 convierte las consultas en procedimientos almacenados con parámetros y agrega tres consultas avanzadas (función de ventana y CTE), también en los cuatro motores.
 
 # 2. Motor: MySQL
 
@@ -2607,6 +2607,1180 @@ END;
 /
 ```
 *Evidencia:* ![paso-60.png](Registro%20visual/triggers/paso-60.png)
+
+# 7. Procedimientos almacenados y consultas avanzadas
+
+Cada consulta de las secciones 2 a 5 se convierte en un **procedimiento almacenado con parámetros** en los cuatro motores, y se agregan tres consultas avanzadas nuevas (funciones de ventana y CTE) que nacen ya como procedimiento. Para cada uno se presenta: la consulta de origen, su narrativa de negocio, los parámetros, el código por motor y la evidencia de la creación (`funcion_N.png`) y de la llamada (`llamada-N.png`). Los scripts completos están en la carpeta `procedimientos/`.
+
+**Convención.** Nombres `sp_<verbo>_<tema>`; parámetros con prefijo `p_`. Diferencias entre motores:
+
+| Motor | Escritura | Lectura (devuelve filas) | Cómo se llama |
+|---|---|---|---|
+| MySQL | `PROCEDURE` | `PROCEDURE` con `SELECT` | `CALL sp_x(...)` |
+| PostgreSQL | `PROCEDURE` | `FUNCTION ... RETURNS TABLE` (un `PROCEDURE` no devuelve filas) | `CALL` / `SELECT * FROM sp_x(...)` |
+| SQL Server | `PROCEDURE` | `PROCEDURE` con `SELECT` | `EXEC sp_x ...` |
+| Oracle | `PROCEDURE` (con `COMMIT`) | `PROCEDURE` con `OUT SYS_REFCURSOR` | `EXEC sp_x(..., :rc); PRINT rc` |
+
+## SP-01. Crear cliente
+
+**Origen:** Consulta 1 (Create, INSERT de cliente)
+
+**Narrativa:** El restaurante registra un comensal nuevo que se vincula al programa de fidelización desde la app. En lugar de repetir el INSERT con valores escritos a mano, el alta se encapsula en un procedimiento que recibe los datos del cliente y los inserta, de modo que la app o el personal siempre usen la misma regla.
+
+**Parámetros:** `p_tipo_documento`, `p_numero_documento`, `p_nombre`, `p_telefono`, `p_email`
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_crear_cliente$$
+CREATE PROCEDURE sp_crear_cliente(
+    IN p_tipo_documento   VARCHAR(20),
+    IN p_numero_documento VARCHAR(30),
+    IN p_nombre           VARCHAR(150),
+    IN p_telefono         VARCHAR(20),
+    IN p_email            VARCHAR(150))
+BEGIN
+    INSERT INTO clientes(tipo_documento, numero_documento, nombre, telefono, email)
+    VALUES (p_tipo_documento, p_numero_documento, p_nombre, p_telefono, p_email);
+END$$
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_1.png](Registro%20visual/mysql/funcion_1.png)
+
+*Llamada:*
+
+```sql
+CALL sp_crear_cliente('CC','1043680257','Maria Perez Gomez','3001112233','maria.perez@example.com');
+```
+
+*Evidencia (llamada):* ![llamada-1.png](Registro%20visual/mysql/llamada-1.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_crear_cliente(
+    p_tipo_documento   VARCHAR,
+    p_numero_documento VARCHAR,
+    p_nombre           VARCHAR,
+    p_telefono         VARCHAR,
+    p_email            VARCHAR)
+LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO clientes(tipo_documento, numero_documento, nombre, telefono, email)
+    VALUES (p_tipo_documento, p_numero_documento, p_nombre, p_telefono, p_email);
+END;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_1.png](Registro%20visual/postgresql/funcion_1.png)
+
+*Llamada:*
+
+```sql
+CALL sp_crear_cliente('CC','1043680257','Maria Perez Gomez','3001112233','maria.perez@example.com');
+```
+
+*Evidencia (llamada):* ![llamada-1.png](Registro%20visual/postgresql/llamada-1.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_crear_cliente
+    @p_tipo_documento   VARCHAR(20),
+    @p_numero_documento VARCHAR(30),
+    @p_nombre           VARCHAR(150),
+    @p_telefono         VARCHAR(20),
+    @p_email            VARCHAR(150)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO clientes(tipo_documento, numero_documento, nombre, telefono, email)
+    VALUES (@p_tipo_documento, @p_numero_documento, @p_nombre, @p_telefono, @p_email);
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_1.png](Registro%20visual/sqlserver/funcion_1.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_crear_cliente 'CC','1043680257','Maria Perez Gomez','3001112233','maria.perez@example.com';
+```
+
+*Evidencia (llamada):* ![llamada-1.png](Registro%20visual/sqlserver/llamada-1.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_crear_cliente(
+    p_tipo_documento   IN VARCHAR2,
+    p_numero_documento IN VARCHAR2,
+    p_nombre           IN VARCHAR2,
+    p_telefono         IN VARCHAR2,
+    p_email            IN VARCHAR2)
+AS
+BEGIN
+    INSERT INTO clientes(tipo_documento, numero_documento, nombre, telefono, email)
+    VALUES (p_tipo_documento, p_numero_documento, p_nombre, p_telefono, p_email);
+    COMMIT;
+END sp_crear_cliente;
+/
+```
+
+*Evidencia (creación):* ![funcion_1.png](Registro%20visual/oracle/funcion_1.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_crear_cliente('CC','1043680257','Maria Perez Gomez','3001112233','maria.perez@example.com');
+```
+
+*Evidencia (llamada):* ![llamada-2.png](Registro%20visual/oracle/llamada-2.png)
+
+## SP-02. Buscar clientes por correo
+
+**Origen:** Consultas 5.1 y 5.2 (LIKE)
+
+**Narrativa:** Soporte técnico necesita ubicar clientes por una parte del correo (por ejemplo, para una migración de dominio). Las dos consultas LIKE fijas ('m%' y '%example%') se generalizan con un patrón recibido por parámetro y se busca en cualquier posición del correo.
+
+**Parámetros:** `p_patron`: texto a buscar dentro del correo
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_buscar_clientes_por_email$$
+CREATE PROCEDURE sp_buscar_clientes_por_email(IN p_patron VARCHAR(100))
+BEGIN
+    SELECT c.id, c.nombre, c.telefono, c.email
+    FROM clientes AS c
+    WHERE c.email LIKE CONCAT('%', p_patron, '%')
+    ORDER BY c.nombre;
+END$$
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_2.png](Registro%20visual/mysql/funcion_2.png)
+
+*Llamada:*
+
+```sql
+CALL sp_buscar_clientes_por_email('example');
+```
+
+*Evidencia (llamada):* ![llamada-2.png](Registro%20visual/mysql/llamada-2.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE FUNCTION sp_buscar_clientes_por_email(p_patron VARCHAR)
+RETURNS TABLE(id INT, nombre VARCHAR, telefono VARCHAR, email VARCHAR)
+LANGUAGE sql AS $$
+    SELECT c.id, c.nombre, c.telefono, c.email
+    FROM clientes AS c
+    WHERE c.email LIKE '%' || p_patron || '%'
+    ORDER BY c.nombre;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_2.png](Registro%20visual/postgresql/funcion_2.png)
+
+*Llamada:*
+
+```sql
+SELECT * FROM sp_buscar_clientes_por_email('example');
+```
+
+*Evidencia (llamada):* ![llamada-2.png](Registro%20visual/postgresql/llamada-2.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_buscar_clientes_por_email
+    @p_patron VARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT c.id, c.nombre, c.telefono, c.email
+    FROM clientes AS c
+    WHERE c.email LIKE CONCAT('%', @p_patron, '%')
+    ORDER BY c.nombre;
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_2.png](Registro%20visual/sqlserver/funcion_2.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_buscar_clientes_por_email 'example';
+```
+
+*Evidencia (llamada):* ![llamada-2.png](Registro%20visual/sqlserver/llamada-2.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_buscar_clientes_por_email(
+    p_patron IN VARCHAR2,
+    p_cursor OUT SYS_REFCURSOR)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    SELECT c.id, c.nombre, c.telefono, c.email
+      FROM clientes c
+     WHERE c.email LIKE '%' || p_patron || '%'
+     ORDER BY c.nombre;
+END sp_buscar_clientes_por_email;
+/
+```
+
+*Evidencia (creación):* ![funcion_2.png](Registro%20visual/oracle/funcion_2.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_buscar_clientes_por_email('example', :rc);
+PRINT rc
+```
+
+*Evidencia (llamada):* ![llamada-3.png](Registro%20visual/oracle/llamada-3.png)
+
+## SP-03. Pedidos por fecha
+
+**Origen:** Consultas 3.3 y 4.2 (JOIN clientes-pedidos y filtro por fecha)
+
+**Narrativa:** Atención al cliente debe ubicar los pedidos de un día para resolver un reclamo. El filtro por una fecha fija se convierte en un parámetro de tipo fecha y se compara solo el día (sin la hora).
+
+**Parámetros:** `p_fecha`: día a consultar
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_pedidos_por_fecha$$
+CREATE PROCEDURE sp_pedidos_por_fecha(IN p_fecha DATE)
+BEGIN
+    SELECT c.nombre AS cliente, c.email, p.id AS pedido_id, p.canal,
+           p.fecha, p.total, p.estado
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    WHERE DATE(p.fecha) = p_fecha
+    ORDER BY p.fecha;
+END$$
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_3.png](Registro%20visual/mysql/funcion_3.png)
+
+*Llamada:*
+
+```sql
+CALL sp_pedidos_por_fecha('2026-05-18');
+```
+
+*Evidencia (llamada):* ![llamada-3.png](Registro%20visual/mysql/llamada-3.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE FUNCTION sp_pedidos_por_fecha(p_fecha DATE)
+RETURNS TABLE(cliente VARCHAR, email VARCHAR, pedido_id INT, canal VARCHAR,
+              fecha TIMESTAMP, total NUMERIC, estado VARCHAR)
+LANGUAGE sql AS $$
+    SELECT c.nombre, c.email, p.id, p.canal, p.fecha, p.total, p.estado
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    WHERE p.fecha::date = p_fecha
+    ORDER BY p.fecha;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_3.png](Registro%20visual/postgresql/funcion_3.png)
+
+*Llamada:*
+
+```sql
+SELECT * FROM sp_pedidos_por_fecha('2026-05-18');
+```
+
+*Evidencia (llamada):* ![llamada-3.png](Registro%20visual/postgresql/llamada-3.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_pedidos_por_fecha
+    @p_fecha DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT c.nombre AS cliente, c.email, p.id AS pedido_id, p.canal,
+           p.fecha, p.total, p.estado
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    WHERE CAST(p.fecha AS DATE) = @p_fecha
+    ORDER BY p.fecha;
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_3.png](Registro%20visual/sqlserver/funcion_3.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_pedidos_por_fecha '2026-05-18';
+```
+
+*Evidencia (llamada):* ![llamada-3.png](Registro%20visual/sqlserver/llamada-3.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_pedidos_por_fecha(
+    p_fecha IN DATE,
+    p_cursor OUT SYS_REFCURSOR)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    SELECT c.nombre AS cliente, c.email, p.id AS pedido_id, p.canal,
+           p.fecha, p.total, p.estado
+      FROM clientes c
+      JOIN pedidos p ON c.id = p.cliente_id
+     WHERE TRUNC(p.fecha) = p_fecha
+     ORDER BY p.fecha;
+END sp_pedidos_por_fecha;
+/
+```
+
+*Evidencia (creación):* ![funcion_3.png](Registro%20visual/oracle/funcion_3.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_pedidos_por_fecha(DATE '2026-05-18', :rc);
+PRINT rc
+```
+
+*Evidencia (llamada):* ![llamada-4.png](Registro%20visual/oracle/llamada-4.png)
+
+## SP-04. Detalle de ventas por rango
+
+**Origen:** Consulta 5.3 (cuatro JOIN, rango de fechas y ORDER BY)
+
+**Narrativa:** Gerencia necesita el detalle de ventas por producto en un periodo, por ejemplo para medir una promoción. Se unen clientes, pedidos, detalles y productos y se devuelven solo las columnas útiles, con el rango de fechas como parámetros.
+
+**Parámetros:** `p_desde`, `p_hasta`: fechas inicial y final (inclusivas)
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_detalle_ventas_rango$$
+CREATE PROCEDURE sp_detalle_ventas_rango(IN p_desde DATE, IN p_hasta DATE)
+BEGIN
+    SELECT p.fecha, p.id AS pedido_id, c.nombre AS cliente, pr.nombre AS producto,
+           dp.cantidad, dp.valor_unitario, dp.total AS total_linea
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    JOIN detalles_pedidos AS dp ON p.id = dp.pedido_id
+    JOIN productos AS pr ON pr.id = dp.producto_id
+    WHERE DATE(p.fecha) BETWEEN p_desde AND p_hasta
+    ORDER BY p.fecha ASC;
+END$$
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_4.png](Registro%20visual/mysql/funcion_4.png)
+
+*Llamada:*
+
+```sql
+CALL sp_detalle_ventas_rango('2026-07-04','2026-07-13');
+```
+
+*Evidencia (llamada):* ![llamada-4.png](Registro%20visual/mysql/llamada-4.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE FUNCTION sp_detalle_ventas_rango(p_desde DATE, p_hasta DATE)
+RETURNS TABLE(fecha TIMESTAMP, pedido_id INT, cliente VARCHAR, producto VARCHAR,
+              cantidad NUMERIC, valor_unitario NUMERIC, total_linea NUMERIC)
+LANGUAGE sql AS $$
+    SELECT p.fecha, p.id, c.nombre, pr.nombre, dp.cantidad, dp.valor_unitario, dp.total
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    JOIN detalles_pedidos AS dp ON p.id = dp.pedido_id
+    JOIN productos AS pr ON pr.id = dp.producto_id
+    WHERE p.fecha::date BETWEEN p_desde AND p_hasta
+    ORDER BY p.fecha ASC;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_4.png](Registro%20visual/postgresql/funcion_4.png)
+
+*Llamada:*
+
+```sql
+SELECT * FROM sp_detalle_ventas_rango('2026-07-04','2026-07-13');
+```
+
+*Evidencia (llamada):* ![llamada-4.png](Registro%20visual/postgresql/llamada-4.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_detalle_ventas_rango
+    @p_desde DATE,
+    @p_hasta DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT p.fecha, p.id AS pedido_id, c.nombre AS cliente, pr.nombre AS producto,
+           dp.cantidad, dp.valor_unitario, dp.total AS total_linea
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    JOIN detalles_pedidos AS dp ON p.id = dp.pedido_id
+    JOIN productos AS pr ON pr.id = dp.producto_id
+    WHERE CAST(p.fecha AS DATE) BETWEEN @p_desde AND @p_hasta
+    ORDER BY p.fecha ASC;
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_4.png](Registro%20visual/sqlserver/funcion_4.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_detalle_ventas_rango '2026-07-04','2026-07-13';
+```
+
+*Evidencia (llamada):* ![llamada-4.png](Registro%20visual/sqlserver/llamada-4.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_detalle_ventas_rango(
+    p_desde IN DATE, p_hasta IN DATE,
+    p_cursor OUT SYS_REFCURSOR)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    SELECT p.fecha, p.id AS pedido_id, c.nombre AS cliente, pr.nombre AS producto,
+           dp.cantidad, dp.valor_unitario, dp.total AS total_linea
+      FROM clientes c
+      JOIN pedidos p ON c.id = p.cliente_id
+      JOIN detalles_pedidos dp ON p.id = dp.pedido_id
+      JOIN productos pr ON pr.id = dp.producto_id
+     WHERE TRUNC(p.fecha) BETWEEN p_desde AND p_hasta
+     ORDER BY p.fecha ASC;
+END sp_detalle_ventas_rango;
+/
+```
+
+*Evidencia (creación):* ![funcion_4.png](Registro%20visual/oracle/funcion_4.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_detalle_ventas_rango(DATE '2026-07-04', DATE '2026-07-13', :rc);
+PRINT rc
+```
+
+*Evidencia (llamada):* ![llamada-5.png](Registro%20visual/oracle/llamada-5.png)
+
+## SP-05. Ventas por cliente
+
+**Origen:** Consulta 7 (agrupamiento SUM, COUNT, AVG)
+
+**Narrativa:** Gerencia pide identificar a los clientes más valiosos de un periodo: total facturado, número de pedidos y ticket promedio. El rango de fechas deja de estar escrito en la consulta y pasa a ser parámetro; el resultado se ordena del mayor al menor total.
+
+**Parámetros:** `p_desde`, `p_hasta`
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_ventas_por_cliente$$
+CREATE PROCEDURE sp_ventas_por_cliente(IN p_desde DATE, IN p_hasta DATE)
+BEGIN
+    SELECT c.id AS cliente_id, c.nombre, SUM(p.total) AS total_suma,
+           COUNT(p.id) AS cuenta_total, ROUND(AVG(p.total), 2) AS promedio
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    WHERE DATE(p.fecha) BETWEEN p_desde AND p_hasta
+    GROUP BY c.id, c.nombre
+    ORDER BY total_suma DESC;
+END$$
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_5.png](Registro%20visual/mysql/funcion_5.png)
+
+*Llamada:*
+
+```sql
+CALL sp_ventas_por_cliente('2026-07-04','2026-07-13');
+```
+
+*Evidencia (llamada):* ![llamada-5.png](Registro%20visual/mysql/llamada-5.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE FUNCTION sp_ventas_por_cliente(p_desde DATE, p_hasta DATE)
+RETURNS TABLE(cliente_id INT, nombre VARCHAR, total_suma NUMERIC,
+              cuenta_total BIGINT, promedio NUMERIC)
+LANGUAGE sql AS $$
+    SELECT c.id, c.nombre, SUM(p.total), COUNT(p.id), ROUND(AVG(p.total), 2)
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    WHERE p.fecha::date BETWEEN p_desde AND p_hasta
+    GROUP BY c.id, c.nombre
+    ORDER BY SUM(p.total) DESC;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_5.png](Registro%20visual/postgresql/funcion_5.png)
+
+*Llamada:*
+
+```sql
+SELECT * FROM sp_ventas_por_cliente('2026-07-04','2026-07-13');
+```
+
+*Evidencia (llamada):* ![llamada-5.png](Registro%20visual/postgresql/llamada-5.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_ventas_por_cliente
+    @p_desde DATE,
+    @p_hasta DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT c.id AS cliente_id, c.nombre, SUM(p.total) AS total_suma,
+           COUNT(p.id) AS cuenta_total, ROUND(AVG(p.total), 2) AS promedio
+    FROM clientes AS c
+    JOIN pedidos AS p ON c.id = p.cliente_id
+    WHERE CAST(p.fecha AS DATE) BETWEEN @p_desde AND @p_hasta
+    GROUP BY c.id, c.nombre
+    ORDER BY total_suma DESC;
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_5.png](Registro%20visual/sqlserver/funcion_5.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_ventas_por_cliente '2026-07-04','2026-07-13';
+```
+
+*Evidencia (llamada):* ![llamada-5.png](Registro%20visual/sqlserver/llamada-5.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_ventas_por_cliente(
+    p_desde IN DATE, p_hasta IN DATE,
+    p_cursor OUT SYS_REFCURSOR)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    SELECT c.id AS cliente_id, c.nombre, SUM(p.total) AS total_suma,
+           COUNT(p.id) AS cuenta_total, ROUND(AVG(p.total), 2) AS promedio
+      FROM clientes c
+      JOIN pedidos p ON c.id = p.cliente_id
+     WHERE TRUNC(p.fecha) BETWEEN p_desde AND p_hasta
+     GROUP BY c.id, c.nombre
+     ORDER BY total_suma DESC;
+END sp_ventas_por_cliente;
+/
+```
+
+*Evidencia (creación):* ![funcion_5.png](Registro%20visual/oracle/funcion_5.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_ventas_por_cliente(DATE '2026-07-04', DATE '2026-07-13', :rc);
+PRINT rc
+```
+
+*Evidencia (llamada):* ![llamada-6.png](Registro%20visual/oracle/llamada-6.png)
+
+## SP-06. Clientes sin pedidos
+
+**Origen:** Consulta 8 (subconsulta NOT IN)
+
+**Narrativa:** Marketing quiere reactivar a los clientes que no compraron en un periodo. La subconsulta con un mes fijo se reemplaza por un rango recibido por parámetro.
+
+**Parámetros:** `p_desde`, `p_hasta`
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_clientes_sin_pedidos$$
+CREATE PROCEDURE sp_clientes_sin_pedidos(IN p_desde DATE, IN p_hasta DATE)
+BEGIN
+    SELECT c.id, c.nombre, c.telefono, c.email
+    FROM clientes AS c
+    WHERE c.id NOT IN (SELECT p.cliente_id FROM pedidos AS p
+                       WHERE DATE(p.fecha) BETWEEN p_desde AND p_hasta)
+    ORDER BY c.nombre;
+END$$
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_6.png](Registro%20visual/mysql/funcion_6.png)
+
+*Llamada:*
+
+```sql
+CALL sp_clientes_sin_pedidos('2026-03-01','2026-03-30');
+```
+
+*Evidencia (llamada):* ![llamada-6.png](Registro%20visual/mysql/llamada-6.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE FUNCTION sp_clientes_sin_pedidos(p_desde DATE, p_hasta DATE)
+RETURNS TABLE(id INT, nombre VARCHAR, telefono VARCHAR, email VARCHAR)
+LANGUAGE sql AS $$
+    SELECT c.id, c.nombre, c.telefono, c.email
+    FROM clientes AS c
+    WHERE c.id NOT IN (SELECT p.cliente_id FROM pedidos AS p
+                       WHERE p.fecha::date BETWEEN p_desde AND p_hasta)
+    ORDER BY c.nombre;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_6.png](Registro%20visual/postgresql/funcion_6.png)
+
+*Llamada:*
+
+```sql
+SELECT * FROM sp_clientes_sin_pedidos('2026-03-01','2026-03-30');
+```
+
+*Evidencia (llamada):* ![llamada-6.png](Registro%20visual/postgresql/llamada-6.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_clientes_sin_pedidos
+    @p_desde DATE,
+    @p_hasta DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT c.id, c.nombre, c.telefono, c.email
+    FROM clientes AS c
+    WHERE c.id NOT IN (SELECT p.cliente_id FROM pedidos AS p
+                       WHERE CAST(p.fecha AS DATE) BETWEEN @p_desde AND @p_hasta)
+    ORDER BY c.nombre;
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_6.png](Registro%20visual/sqlserver/funcion_6.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_clientes_sin_pedidos '2026-03-01','2026-03-30';
+```
+
+*Evidencia (llamada):* ![llamada-6.png](Registro%20visual/sqlserver/llamada-6.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_clientes_sin_pedidos(
+    p_desde IN DATE, p_hasta IN DATE,
+    p_cursor OUT SYS_REFCURSOR)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    SELECT c.id, c.nombre, c.telefono, c.email
+      FROM clientes c
+     WHERE c.id NOT IN (SELECT p.cliente_id FROM pedidos p
+                         WHERE TRUNC(p.fecha) BETWEEN p_desde AND p_hasta)
+     ORDER BY c.nombre;
+END sp_clientes_sin_pedidos;
+/
+```
+
+*Evidencia (creación):* ![funcion_6.png](Registro%20visual/oracle/funcion_6.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_clientes_sin_pedidos(DATE '2026-03-01', DATE '2026-03-30', :rc);
+PRINT rc
+```
+
+*Evidencia (llamada):* ![llamada-7.png](Registro%20visual/oracle/llamada-7.png)
+
+## SP-07. Ranking de productos más vendidos del mes
+
+**Origen:** Consulta avanzada nueva (función de ventana RANK)
+
+**Narrativa:** Gerencia quiere saber qué productos lideran las ventas de un mes y con qué posición. Se agrupa por producto y se calcula su posición con `RANK() OVER (ORDER BY SUM(total) DESC)`; el parámetro `p_top` limita el ranking a los N primeros (los empates comparten posición).
+
+**Parámetros:** `p_anio`, `p_mes`, `p_top`
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_ranking_productos_mes$$
+CREATE PROCEDURE sp_ranking_productos_mes(IN p_anio INT, IN p_mes INT, IN p_top INT)
+BEGIN
+    SELECT r.posicion, r.producto, r.unidades, r.ingresos
+    FROM (
+        SELECT RANK() OVER (ORDER BY SUM(dp.total) DESC) AS posicion,
+               pr.nombre AS producto,
+               SUM(dp.cantidad) AS unidades,
+               SUM(dp.total)    AS ingresos
+        FROM detalles_pedidos AS dp
+        JOIN pedidos   AS p  ON p.id  = dp.pedido_id
+        JOIN productos AS pr ON pr.id = dp.producto_id
+        WHERE YEAR(p.fecha) = p_anio AND MONTH(p.fecha) = p_mes
+        GROUP BY pr.id, pr.nombre
+    ) AS r
+    WHERE r.posicion <= p_top
+    ORDER BY r.posicion, r.producto;
+END$$
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_7.png](Registro%20visual/mysql/funcion_7.png)
+
+*Llamada:*
+
+```sql
+CALL sp_ranking_productos_mes(2026,7,3);
+```
+
+*Evidencia (llamada):* ![llamada-7.png](Registro%20visual/mysql/llamada-7.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE FUNCTION sp_ranking_productos_mes(p_anio INT, p_mes INT, p_top INT)
+RETURNS TABLE(posicion BIGINT, producto VARCHAR, unidades NUMERIC, ingresos NUMERIC)
+LANGUAGE sql AS $$
+    SELECT r.posicion, r.producto, r.unidades, r.ingresos
+    FROM (
+        SELECT RANK() OVER (ORDER BY SUM(dp.total) DESC) AS posicion,
+               pr.nombre AS producto,
+               SUM(dp.cantidad) AS unidades,
+               SUM(dp.total)    AS ingresos
+        FROM detalles_pedidos AS dp
+        JOIN pedidos   AS p  ON p.id  = dp.pedido_id
+        JOIN productos AS pr ON pr.id = dp.producto_id
+        WHERE EXTRACT(YEAR  FROM p.fecha) = p_anio
+          AND EXTRACT(MONTH FROM p.fecha) = p_mes
+        GROUP BY pr.id, pr.nombre
+    ) AS r
+    WHERE r.posicion <= p_top
+    ORDER BY r.posicion, r.producto;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_7.png](Registro%20visual/postgresql/funcion_7.png)
+
+*Llamada:*
+
+```sql
+SELECT * FROM sp_ranking_productos_mes(2026,7,3);
+```
+
+*Evidencia (llamada):* ![llamada-7.png](Registro%20visual/postgresql/llamada-7.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_ranking_productos_mes
+    @p_anio INT,
+    @p_mes  INT,
+    @p_top  INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT r.posicion, r.producto, r.unidades, r.ingresos
+    FROM (
+        SELECT RANK() OVER (ORDER BY SUM(dp.total) DESC) AS posicion,
+               pr.nombre AS producto,
+               SUM(dp.cantidad) AS unidades,
+               SUM(dp.total)    AS ingresos
+        FROM detalles_pedidos AS dp
+        JOIN pedidos   AS p  ON p.id  = dp.pedido_id
+        JOIN productos AS pr ON pr.id = dp.producto_id
+        WHERE YEAR(p.fecha) = @p_anio AND MONTH(p.fecha) = @p_mes
+        GROUP BY pr.id, pr.nombre
+    ) AS r
+    WHERE r.posicion <= @p_top
+    ORDER BY r.posicion, r.producto;
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_7.png](Registro%20visual/sqlserver/funcion_7.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_ranking_productos_mes 2026,7,3;
+```
+
+*Evidencia (llamada):* ![llamada-7.png](Registro%20visual/sqlserver/llamada-7.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_ranking_productos_mes(
+    p_anio IN NUMBER, p_mes IN NUMBER, p_top IN NUMBER,
+    p_cursor OUT SYS_REFCURSOR)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    SELECT r.posicion, r.producto, r.unidades, r.ingresos
+      FROM (
+            SELECT RANK() OVER (ORDER BY SUM(dp.total) DESC) AS posicion,
+                   pr.nombre AS producto,
+                   SUM(dp.cantidad) AS unidades,
+                   SUM(dp.total)    AS ingresos
+              FROM detalles_pedidos dp
+              JOIN pedidos   p  ON p.id  = dp.pedido_id
+              JOIN productos pr ON pr.id = dp.producto_id
+             WHERE EXTRACT(YEAR FROM p.fecha) = p_anio
+               AND EXTRACT(MONTH FROM p.fecha) = p_mes
+             GROUP BY pr.id, pr.nombre
+           ) r
+     WHERE r.posicion <= p_top
+     ORDER BY r.posicion, r.producto;
+END sp_ranking_productos_mes;
+/
+```
+
+*Evidencia (creación):* ![funcion_7.png](Registro%20visual/oracle/funcion_7.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_ranking_productos_mes(2026, 7, 3, :rc);
+PRINT rc
+```
+
+*Evidencia (llamada):* ![llamada-8.png](Registro%20visual/oracle/llamada-8.png)
+
+## SP-08. Clientes con ticket sobre el promedio
+
+**Origen:** Consulta avanzada nueva (CTE)
+
+**Narrativa:** Para dirigir ofertas a los mejores clientes se compara el ticket promedio de cada cliente con el ticket promedio general del periodo. Tres expresiones comunes de tabla (`periodo`, `general`, `por_cliente`) separan los pasos y la consulta final deja solo a quienes superan el promedio.
+
+**Parámetros:** `p_desde`, `p_hasta`
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_clientes_sobre_promedio$$
+CREATE PROCEDURE sp_clientes_sobre_promedio(IN p_desde DATE, IN p_hasta DATE)
+BEGIN
+    WITH periodo AS (
+        SELECT p.cliente_id, p.total
+        FROM pedidos AS p
+        WHERE DATE(p.fecha) BETWEEN p_desde AND p_hasta
+    ),
+    general AS (SELECT AVG(total) AS ticket FROM periodo),
+    por_cliente AS (
+        SELECT cliente_id, COUNT(*) AS pedidos, AVG(total) AS ticket
+        FROM periodo GROUP BY cliente_id
+    )
+    SELECT c.nombre AS cliente, pc.pedidos,
+           ROUND(pc.ticket, 2) AS ticket_cliente, ROUND(g.ticket, 2) AS ticket_general
+    FROM por_cliente AS pc
+    JOIN clientes AS c ON c.id = pc.cliente_id
+    CROSS JOIN general AS g
+    WHERE pc.ticket > g.ticket
+    ORDER BY pc.ticket DESC;
+END$$
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_8.png](Registro%20visual/mysql/funcion_8.png)
+
+*Llamada:*
+
+```sql
+CALL sp_clientes_sobre_promedio('2026-07-01','2026-07-31');
+```
+
+*Evidencia (llamada):* ![llamada-8.png](Registro%20visual/mysql/llamada-8.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE FUNCTION sp_clientes_sobre_promedio(p_desde DATE, p_hasta DATE)
+RETURNS TABLE(cliente VARCHAR, pedidos BIGINT, ticket_cliente NUMERIC, ticket_general NUMERIC)
+LANGUAGE sql AS $$
+    WITH periodo AS (
+        SELECT p.cliente_id, p.total
+        FROM pedidos AS p
+        WHERE p.fecha::date BETWEEN p_desde AND p_hasta
+    ),
+    general AS (SELECT AVG(total) AS ticket FROM periodo),
+    por_cliente AS (
+        SELECT cliente_id, COUNT(*) AS pedidos, AVG(total) AS ticket
+        FROM periodo GROUP BY cliente_id
+    )
+    SELECT c.nombre, pc.pedidos, ROUND(pc.ticket, 2), ROUND(g.ticket, 2)
+    FROM por_cliente AS pc
+    JOIN clientes AS c ON c.id = pc.cliente_id
+    CROSS JOIN general AS g
+    WHERE pc.ticket > g.ticket
+    ORDER BY pc.ticket DESC;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_8.png](Registro%20visual/postgresql/funcion_8.png)
+
+*Llamada:*
+
+```sql
+SELECT * FROM sp_clientes_sobre_promedio('2026-07-01','2026-07-31');
+```
+
+*Evidencia (llamada):* ![llamada-8.png](Registro%20visual/postgresql/llamada-8.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_clientes_sobre_promedio
+    @p_desde DATE,
+    @p_hasta DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    WITH periodo AS (
+        SELECT p.cliente_id, p.total
+        FROM pedidos AS p
+        WHERE CAST(p.fecha AS DATE) BETWEEN @p_desde AND @p_hasta
+    ),
+    general AS (SELECT AVG(total) AS ticket FROM periodo),
+    por_cliente AS (
+        SELECT cliente_id, COUNT(*) AS pedidos, AVG(total) AS ticket
+        FROM periodo GROUP BY cliente_id
+    )
+    SELECT c.nombre AS cliente, pc.pedidos,
+           ROUND(pc.ticket, 2) AS ticket_cliente, ROUND(g.ticket, 2) AS ticket_general
+    FROM por_cliente AS pc
+    JOIN clientes AS c ON c.id = pc.cliente_id
+    CROSS JOIN general AS g
+    WHERE pc.ticket > g.ticket
+    ORDER BY pc.ticket DESC;
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_8.png](Registro%20visual/sqlserver/funcion_8.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_clientes_sobre_promedio '2026-07-01','2026-07-31';
+```
+
+*Evidencia (llamada):* ![llamada-8.png](Registro%20visual/sqlserver/llamada-8.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_clientes_sobre_promedio(
+    p_desde IN DATE, p_hasta IN DATE,
+    p_cursor OUT SYS_REFCURSOR)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    WITH periodo AS (
+           SELECT p.cliente_id, p.total
+             FROM pedidos p
+            WHERE TRUNC(p.fecha) BETWEEN p_desde AND p_hasta
+         ),
+         general AS (SELECT AVG(total) AS ticket FROM periodo),
+         por_cliente AS (
+           SELECT cliente_id, COUNT(*) AS pedidos, AVG(total) AS ticket
+             FROM periodo GROUP BY cliente_id
+         )
+    SELECT c.nombre AS cliente, pc.pedidos,
+           ROUND(pc.ticket, 2) AS ticket_cliente, ROUND(g.ticket, 2) AS ticket_general
+      FROM por_cliente pc
+      JOIN clientes c ON c.id = pc.cliente_id
+     CROSS JOIN general g
+     WHERE pc.ticket > g.ticket
+     ORDER BY pc.ticket DESC;
+END sp_clientes_sobre_promedio;
+/
+```
+
+*Evidencia (creación):* ![funcion_8.png](Registro%20visual/oracle/funcion_8.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_clientes_sobre_promedio(DATE '2026-07-01', DATE '2026-07-31', :rc);
+PRINT rc
+```
+
+*Evidencia (llamada):* ![llamada-9.png](Registro%20visual/oracle/llamada-9.png)
+
+## SP-09. Ventas diarias con acumulado
+
+**Origen:** Consulta avanzada nueva (SUM OVER)
+
+**Narrativa:** Administración quiere ver la venta de cada día y cómo se va acumulando en el periodo. Se agrupa por día y se aplica `SUM(venta_dia) OVER (ORDER BY dia)` para obtener el acumulado.
+
+**Parámetros:** `p_desde`, `p_hasta`
+
+### MySQL 8.0
+
+```sql
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_ventas_diarias_acumuladas$$
+CREATE PROCEDURE sp_ventas_diarias_acumuladas(IN p_desde DATE, IN p_hasta DATE)
+BEGIN
+    SELECT d.dia, d.pedidos, d.venta_dia,
+           SUM(d.venta_dia) OVER (ORDER BY d.dia) AS acumulado
+    FROM (
+        SELECT DATE(p.fecha) AS dia, COUNT(*) AS pedidos, SUM(p.total) AS venta_dia
+        FROM pedidos AS p
+        WHERE DATE(p.fecha) BETWEEN p_desde AND p_hasta
+        GROUP BY DATE(p.fecha)
+    ) AS d
+    ORDER BY d.dia;
+END$$
+
+DELIMITER ;
+DELIMITER ;
+```
+
+*Evidencia (creación):* ![funcion_9.png](Registro%20visual/mysql/funcion_9.png)
+
+*Llamada:*
+
+```sql
+CALL sp_ventas_diarias_acumuladas('2026-07-01','2026-07-31');
+```
+
+*Evidencia (llamada):* ![llamada-9.png](Registro%20visual/mysql/llamada-9.png)
+
+### PostgreSQL 17
+
+```sql
+CREATE OR REPLACE FUNCTION sp_ventas_diarias_acumuladas(p_desde DATE, p_hasta DATE)
+RETURNS TABLE(dia DATE, pedidos BIGINT, venta_dia NUMERIC, acumulado NUMERIC)
+LANGUAGE sql AS $$
+    SELECT d.dia, d.pedidos, d.venta_dia,
+           SUM(d.venta_dia) OVER (ORDER BY d.dia) AS acumulado
+    FROM (
+        SELECT p.fecha::date AS dia, COUNT(*) AS pedidos, SUM(p.total) AS venta_dia
+        FROM pedidos AS p
+        WHERE p.fecha::date BETWEEN p_desde AND p_hasta
+        GROUP BY p.fecha::date
+    ) AS d
+    ORDER BY d.dia;
+$$;
+```
+
+*Evidencia (creación):* ![funcion_9.png](Registro%20visual/postgresql/funcion_9.png)
+
+*Llamada:*
+
+```sql
+SELECT * FROM sp_ventas_diarias_acumuladas('2026-07-01','2026-07-31');
+```
+
+*Evidencia (llamada):* ![llamada-9.png](Registro%20visual/postgresql/llamada-9.png)
+
+### SQL Server 2022
+
+```sql
+CREATE OR ALTER PROCEDURE sp_ventas_diarias_acumuladas
+    @p_desde DATE,
+    @p_hasta DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT d.dia, d.pedidos, d.venta_dia,
+           SUM(d.venta_dia) OVER (ORDER BY d.dia) AS acumulado
+    FROM (
+        SELECT CAST(p.fecha AS DATE) AS dia, COUNT(*) AS pedidos, SUM(p.total) AS venta_dia
+        FROM pedidos AS p
+        WHERE CAST(p.fecha AS DATE) BETWEEN @p_desde AND @p_hasta
+        GROUP BY CAST(p.fecha AS DATE)
+    ) AS d
+    ORDER BY d.dia;
+END;
+GO
+```
+
+*Evidencia (creación):* ![funcion_9.png](Registro%20visual/sqlserver/funcion_9.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_ventas_diarias_acumuladas '2026-07-01','2026-07-31';
+```
+
+*Evidencia (llamada):* ![llamada-9.png](Registro%20visual/sqlserver/llamada-9.png)
+
+### Oracle XE 21
+
+```sql
+CREATE OR REPLACE PROCEDURE sp_ventas_diarias_acumuladas(
+    p_desde IN DATE, p_hasta IN DATE,
+    p_cursor OUT SYS_REFCURSOR)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    SELECT d.dia, d.pedidos, d.venta_dia,
+           SUM(d.venta_dia) OVER (ORDER BY d.dia) AS acumulado
+      FROM (
+            SELECT TRUNC(p.fecha) AS dia, COUNT(*) AS pedidos, SUM(p.total) AS venta_dia
+              FROM pedidos p
+             WHERE TRUNC(p.fecha) BETWEEN p_desde AND p_hasta
+             GROUP BY TRUNC(p.fecha)
+           ) d
+     ORDER BY d.dia;
+END sp_ventas_diarias_acumuladas;
+/
+```
+
+*Evidencia (creación):* ![funcion_9.png](Registro%20visual/oracle/funcion_9.png)
+
+*Llamada:*
+
+```sql
+EXEC sp_ventas_diarias_acumuladas(DATE '2026-07-01', DATE '2026-07-31', :rc);
+PRINT rc
+```
+
+*Evidencia (llamada):* ![llamada-10.png](Registro%20visual/oracle/llamada-10.png)
 
 ## Firma
 
