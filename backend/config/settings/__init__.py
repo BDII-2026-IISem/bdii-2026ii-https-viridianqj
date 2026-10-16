@@ -121,6 +121,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
+    'REDOC_DIST': 'https://cdn.jsdelivr.net/npm/redoc@2.1.5',
     "TITLE": "BrasaGo API",
     "DESCRIPTION": "API REST de BrasaGo, operación omnicanal de restaurante.",
     "VERSION": "1.0.0",
