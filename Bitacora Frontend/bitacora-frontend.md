@@ -10,7 +10,7 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | **Guía de referencia** | [Angular 20 · APIs con Django](https://tecnogua.com/academic/site/frontend/angular20/apis_django/), con la instalación y el cliente Django del mismo sitio |
 | **Backend consumido** | API REST de BrasaGo (Django 5.2 + DRF), `http://127.0.0.1:8000/api` |
 | **Pruebas** | 22 pruebas OK en 13 archivos (`ng test`), ver sección 7 |
-| **Fecha de cierre** | 24 de octubre de 2026 |
+| **Fecha de cierre** | 28 de octubre de 2026 |
 
 ---
 
@@ -34,6 +34,9 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | F-13 | Build de producción | Bien |
 | F-14 | Repositorio y manejo de secretos | Pendiente de push |
 | F-15 | Datos de ejemplo para las pantallas | Bien |
+| F-16 | CRUD de clientes (alta, edición, baja y búsqueda) | Bien |
+| F-17 | CRUD de productos (alta, edición, baja y búsqueda) | Bien |
+| F-18 | Pruebas después de los CRUD | Bien |
 
 ---
 
@@ -496,6 +499,57 @@ Reglas del backend que condicionaron los datos: una entrega solo acepta pedidos 
 ![F-15 Ejecución del script](Reguistro%20visual/F-15-02-script.png)
 *Ejecución de `seed_frontend.py`: un `OK` por cada registro creado*
 
+
+### F-16. CRUD de clientes (ISS-03, adaptado)
+
+Se amplió el listado de clientes con alta, edición, baja lógica y búsqueda. El servicio `ClientService` agrega `create`, `update` y `remove` sobre `/api/clientes/` (`POST`, `PATCH` y `DELETE`). El componente `getall` usa un formulario reactivo dentro de un `p-dialog`, que sirve tanto para alta como para edición.
+
+Adaptaciones frente a la guía: la ruta es `/api/clientes/` (no `/api/clients/`), el estado es `ACTIVE`/`INACTIVE`, y la confirmación de baja usa el cuadro nativo `confirm()`. Los errores del backend (por ejemplo, documento duplicado) se muestran dentro del diálogo.
+
+![Diálogo "Nuevo cliente" con validación de nombre corto](Reguistro%20visual/F-16-01-nombre-corto.png)
+*Diálogo "Nuevo cliente" con validación de nombre corto*
+
+![Búsqueda por "laura" en el listado de clientes](Reguistro%20visual/F-16-02-buscar.png)
+*Búsqueda por "laura" en el listado de clientes*
+
+![Error del backend por número de documento duplicado, mostrado en el diálogo](Reguistro%20visual/F-16-03-documento-duplicado.png)
+*Error del backend por número de documento duplicado, mostrado en el diálogo*
+
+![Cliente dado de baja: el estado queda como Inactivo](Reguistro%20visual/F-16-04-baja.png)
+*Cliente dado de baja: el estado queda como Inactivo*
+
+![`ng build` sin errores](Reguistro%20visual/F-16-05-ng-build.png)
+*`ng build` sin errores*
+
+### F-17. CRUD de productos (ISS-05, adaptado)
+
+Se amplió el listado de productos con alta, edición, baja lógica y búsqueda. `ProductService` agrega `create`, `update` y `remove` sobre `/api/productos/`. El formulario valida SKU (2 a 50 caracteres), nombre (2 a 150), descripción opcional y precio no negativo, y lo envía como texto decimal, como lo espera el backend.
+
+Adaptaciones frente a la guía: BrasaGo no tiene stock ni tipo de producto en el diagrama, así que se omiten las filas en ámbar por stock bajo, el selector de tipo y el interruptor de disponibles. El precio se muestra en pesos colombianos. La baja usa el mismo patrón que clientes.
+
+![Diálogo "Nuevo producto" con validación de SKU corto](Reguistro%20visual/F-17-01-sku-corto.png)
+*Diálogo "Nuevo producto" con validación de SKU corto*
+
+![Producto nuevo en la tabla, con precio en pesos](Reguistro%20visual/F-17-02-producto-nuevo.png)
+*Producto nuevo en la tabla, con precio en pesos*
+
+![Error del backend por SKU duplicado, mostrado en el diálogo](Reguistro%20visual/F-17-03-sku-duplicado.png)
+*Error del backend por SKU duplicado, mostrado en el diálogo*
+
+![Producto dado de baja: el estado queda como Inactivo](Reguistro%20visual/F-17-04-baja.png)
+*Producto dado de baja: el estado queda como Inactivo*
+
+![`ng build` sin errores](Reguistro%20visual/F-17-05-ng-build.png)
+*`ng build` sin errores*
+
+
+### F-18. Pruebas después de los CRUD
+
+Tras agregar alta, edición, baja y búsqueda, se volvió a ejecutar `npx ng test --no-watch`. Resultado: **13 archivos y 22 pruebas OK**, sin fallos. Las pruebas de `getall` de clientes y productos siguen pasando con el formulario y el servicio nuevos.
+
+![F-18 ng test después de los CRUD](Reguistro%20visual/F-18-01-ng-test.png)
+*`ng test` con 13 archivos y 22 pruebas OK*
+
 ---
 
 ## 7. Pruebas
@@ -523,6 +577,7 @@ Resultado: **13 archivos y 22 pruebas OK** (ver F-12). El ejecutor de pruebas es
 | Tabla con 0 registros y sin error | La base `brasago_django` estaba vacía | Crear datos de ejemplo desde Swagger |
 | Aviso rojo "Invalid PrimeUI License" | PrimeNG 22 pide licencia | Configurar la licencia Community (F-07) |
 | Encabezados cambiados ("IDENTIFICACIÓN", "Colina baja") y contador en 0 | El traductor de Chrome reescribía el DOM y Angular actualizaba nodos que ya no estaban | `lang="es"`, `translate="no"` y `<meta name="google" content="notranslate">` |
+| `No pipe found with name 'currency'` (NG8004) | Se usó `CurrencyPipe` en el HTML de productos sin importarlo en el componente | Agregar `CurrencyPipe` a `imports` y al `import` del archivo |
 | `dev-credentials.example.ts` sin el cierre `};` | El `sed` dejó el archivo incompleto, y rompería el build | Reescribirlo completo |
 
 ### Evidencias de los errores
@@ -569,6 +624,7 @@ El usuario de `dev-credentials.ts` debe tener acceso a los recursos de la API (p
 
 ## 10. Pendiente
 
-- Pantallas de crear, editar y dar de baja (solo se implementó el "mostrar").
+- Registro de pedidos desde la pantalla (ISS-06).
+- Dashboard de ventas (ISS-07).
 - Login real con JWT (se omitió por alcance).
 - Pantallas de sedes y mesas, cuando el backend exponga sus endpoints.

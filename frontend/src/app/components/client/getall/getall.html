@@ -1,15 +1,29 @@
 <section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-  <div class="mb-4 flex items-center justify-between gap-3">
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
       <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
         <i class="pi pi-users text-lg"></i>
       </span>
       <div>
         <h2 class="text-xl font-semibold text-slate-800">Clientes</h2>
-        <p class="text-sm text-slate-500">{{ items().length }} {{ items().length === 1 ? 'registro' : 'registros' }}</p>
+        <p class="text-sm text-slate-500">{{ filtered().length }} {{ filtered().length === 1 ? 'registro' : 'registros' }}</p>
       </div>
     </div>
-    <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="load()" />
+    <div class="flex gap-2">
+      <p-button label="Nuevo cliente" icon="pi pi-plus" (onClick)="openCreate()" />
+      <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <input
+      pInputText
+      type="text"
+      class="w-full md:w-96"
+      placeholder="Buscar por nombre, correo o teléfono"
+      [value]="search()"
+      (input)="onSearch($event)"
+    />
   </div>
 
   @if (error()) {
@@ -17,7 +31,7 @@
   }
 
   <p-table
-    [value]="items()"
+    [value]="filtered()"
     [loading]="loading()"
     [paginator]="true"
     [rows]="10"
@@ -25,7 +39,7 @@
     [stripedRows]="true"
     dataKey="id"
     size="small"
-    [tableStyle]="{ 'min-width': '40rem' }"
+    [tableStyle]="{ 'min-width': '60rem' }"
   >
     <ng-template #header>
       <tr>
@@ -33,26 +47,98 @@
         <th pSortableColumn="documentType">Tipo doc. <p-sort-icon field="documentType" /></th>
         <th pSortableColumn="documentNumber">Documento <p-sort-icon field="documentNumber" /></th>
         <th pSortableColumn="name">Nombre <p-sort-icon field="name" /></th>
-        <th pSortableColumn="phone">Teléfono <p-sort-icon field="phone" /></th>
-        <th pSortableColumn="email">Correo <p-sort-icon field="email" /></th>
+        <th>Teléfono</th>
+        <th>Correo</th>
         <th pSortableColumn="status">Estado <p-sort-icon field="status" /></th>
+        <th>Acciones</th>
       </tr>
     </ng-template>
 
     <ng-template #body let-row>
       <tr>
-        <td>{{ row.id }}</td>
+        <td>#{{ row.id }}</td>
         <td>{{ row.documentType }}</td>
         <td>{{ row.documentNumber }}</td>
         <td>{{ row.name }}</td>
         <td>{{ row.phone ?? '—' }}</td>
         <td>{{ row.email ?? '—' }}</td>
         <td><p-tag [value]="label(row.status)" [severity]="severity(row.status)" /></td>
+        <td class="flex gap-1">
+          <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" (onClick)="openEdit(row)" />
+          <p-button
+            icon="pi pi-trash"
+            [text]="true"
+            [rounded]="true"
+            severity="danger"
+            [disabled]="row.status !== 'ACTIVE'"
+            (onClick)="remove(row)"
+          />
+        </td>
       </tr>
     </ng-template>
 
     <ng-template #emptymessage>
-      <tr><td colspan="7" class="p-6 text-center text-slate-500">No hay clientes para mostrar.</td></tr>
+      <tr><td colspan="8" class="p-6 text-center text-slate-500">No hay clientes para mostrar.</td></tr>
     </ng-template>
   </p-table>
 </section>
+
+<p-dialog
+  [visible]="dialogOpen()"
+  (visibleChange)="dialogOpen.set($event)"
+  [modal]="true"
+  [header]="editing() ? 'Editar cliente' : 'Nuevo cliente'"
+  [style]="{ width: '32rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-1">
+      <label for="documentType" class="text-sm font-medium text-slate-700">Tipo de documento</label>
+      <p-select
+        inputId="documentType"
+        formControlName="documentType"
+        [options]="documentTypes"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="documentNumber" class="text-sm font-medium text-slate-700">Número de documento</label>
+      <input pInputText id="documentNumber" formControlName="documentNumber" />
+      @if (form.controls.documentNumber.touched && form.controls.documentNumber.invalid) {
+        <small class="text-red-600">Escribe el número de documento.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="name" class="text-sm font-medium text-slate-700">Nombre</label>
+      <input pInputText id="name" formControlName="name" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <small class="text-red-600">El nombre debe tener entre 2 y 150 caracteres.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="phone" class="text-sm font-medium text-slate-700">Teléfono</label>
+      <input pInputText id="phone" formControlName="phone" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="email" class="text-sm font-medium text-slate-700">Correo</label>
+      <input pInputText id="email" formControlName="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small class="text-red-600">Escribe un correo válido.</small>
+      }
+    </div>
+
+    @if (formError()) {
+      <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ formError() }}</div>
+    }
+
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Cancelar" type="button" severity="secondary" [outlined]="true" (onClick)="dialogOpen.set(false)" />
+      <p-button label="Guardar" type="submit" [loading]="saving()" [disabled]="form.invalid" />
+    </div>
+  </form>
+</p-dialog>
