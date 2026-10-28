@@ -32,7 +32,7 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | F-11 | Listados de insumos, recetas, domiciliarios y entregas | Bien |
 | F-12 | Pruebas automáticas | Bien |
 | F-13 | Build de producción | Bien |
-| F-14 | Repositorio y manejo de secretos | Pendiente de push |
+| F-14 | Repositorio y manejo de secretos | Bien |
 | F-15 | Datos de ejemplo para las pantallas | Bien |
 | F-16 | CRUD de clientes (alta, edición, baja y búsqueda) | Bien |
 | F-17 | CRUD de productos (alta, edición, baja y búsqueda) | Bien |
