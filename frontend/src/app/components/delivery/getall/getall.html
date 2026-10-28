@@ -1,0 +1,58 @@
+<section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+        <i class="pi pi-send text-lg"></i>
+      </span>
+      <div>
+        <h2 class="text-xl font-semibold text-slate-800">Entregas</h2>
+        <p class="text-sm text-slate-500">{{ items().length }} {{ items().length === 1 ? 'registro' : 'registros' }}</p>
+      </div>
+    </div>
+    <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="load()" />
+  </div>
+
+  @if (error()) {
+    <div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ error() }}</div>
+  }
+
+  <p-table
+    [value]="items()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [stripedRows]="true"
+    dataKey="id"
+    size="small"
+    [tableStyle]="{ 'min-width': '55rem' }"
+  >
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="id">ID <p-sort-icon field="id" /></th>
+        <th pSortableColumn="order">Pedido <p-sort-icon field="order" /></th>
+        <th pSortableColumn="courierName">Domiciliario <p-sort-icon field="courierName" /></th>
+        <th pSortableColumn="startedAt">Salida <p-sort-icon field="startedAt" /></th>
+        <th pSortableColumn="finishedAt">Llegada <p-sort-icon field="finishedAt" /></th>
+        <th pSortableColumn="total">Total <p-sort-icon field="total" /></th>
+        <th pSortableColumn="deliveryStatus">Estado <p-sort-icon field="deliveryStatus" /></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-row>
+      <tr>
+        <td>#{{ row.id }}</td>
+        <td>#{{ row.order }}</td>
+        <td>{{ row.courierName }}</td>
+        <td>{{ row.startedAt ? (row.startedAt | date: 'dd/MM/yyyy HH:mm') : '—' }}</td>
+        <td>{{ row.finishedAt ? (row.finishedAt | date: 'dd/MM/yyyy HH:mm') : '—' }}</td>
+        <td>{{ row.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+        <td><p-tag [value]="label(row.deliveryStatus)" [severity]="severity(row.deliveryStatus)" /></td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr><td colspan="7" class="p-6 text-center text-slate-500">No hay entregas para mostrar.</td></tr>
+    </ng-template>
+  </p-table>
+</section>
