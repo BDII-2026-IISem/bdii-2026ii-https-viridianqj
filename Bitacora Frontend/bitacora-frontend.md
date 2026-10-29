@@ -10,7 +10,7 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | **Guía de referencia** | [Angular 20 · APIs con Django](https://tecnogua.com/academic/site/frontend/angular20/apis_django/), con la instalación y el cliente Django del mismo sitio |
 | **Backend consumido** | API REST de BrasaGo (Django 5.2 + DRF), `http://127.0.0.1:8000/api` |
 | **Pruebas** | 22 pruebas OK en 13 archivos (`ng test`), ver sección 7 |
-| **Fecha de cierre** | 28 de octubre de 2026 |
+| **Fecha de cierre** | 24 de octubre de 2026 |
 
 ---
 
@@ -22,7 +22,7 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | F-01 | Proyecto Angular, PrimeNG y Tailwind | Bien |
 | F-02 | Plantilla: encabezado, menú lateral y pie | Bien |
 | F-03 | Arranque de la aplicación | Bien |
-| F-04 | Acceso a la API en desarrollo (login automático e interceptor) | Bien |
+| F-04 | Acceso a la API en desarrollo (login automático e interceptor) | Reemplazado por F-22 |
 | F-05 | Base del consumo: `BaseApi`, modelos y estado | Bien |
 | F-06 | Listado de clientes | Bien |
 | F-07 | Licencia de PrimeNG | Bien |
@@ -32,11 +32,15 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | F-11 | Listados de insumos, recetas, domiciliarios y entregas | Bien |
 | F-12 | Pruebas automáticas | Bien |
 | F-13 | Build de producción | Bien |
-| F-14 | Repositorio y manejo de secretos | Bien |
+| F-14 | Repositorio y manejo de secretos | Pendiente de push |
 | F-15 | Datos de ejemplo para las pantallas | Bien |
 | F-16 | CRUD de clientes (alta, edición, baja y búsqueda) | Bien |
 | F-17 | CRUD de productos (alta, edición, baja y búsqueda) | Bien |
 | F-18 | Pruebas después de los CRUD | Bien |
+| F-19 | Registro de pedidos desde la pantalla (ISS-06) | Bien |
+| F-20 | Detalle de pedido y anulación (ISS-07, parcial: sin panel) | Bien |
+| F-21 | ISS-07 completado: líneas de pedido y panel del día | Bien |
+| F-22 | Login con JWT, sesión, interceptores y perfil (ISS-08) | Bien |
 
 ---
 
@@ -550,6 +554,69 @@ Tras agregar alta, edición, baja y búsqueda, se volvió a ejecutar `npx ng tes
 ![F-18 ng test después de los CRUD](Reguistro%20visual/F-18-01-ng-test.png)
 *`ng test` con 13 archivos y 22 pruebas OK*
 
+
+### F-19. Registro de pedidos desde la pantalla (ISS-06, adaptado)
+
+El listado de pedidos suma un diálogo "Nuevo pedido" con un borrador hecho con signals (sin `FormGroup`, como pide la guía). El cliente es opcional, el canal puede ser Mesa, Recogida o Domicilio, y cada línea se agrega con producto y cantidad. El servicio `OrderService.create` envía `POST /api/pedidos/` con `clientId`, `branchId`, `tableId`, `channel` e `items`.
+
+Reglas en el cliente: al menos un producto, cantidad entero mayor o igual a 1, sin productos repetidos y mesa obligatoria en canal Mesa. El total lo calcula el backend; en el diálogo solo se muestra un subtotal estimado.
+
+Adaptaciones frente a la guía: no hay stock, impuestos ni descuentos en el diagrama, así que se omiten los avisos de stock. La sede y las mesas son constantes del frontend (`shared/venue.ts`), porque la API no tiene endpoints para ellas. La pantalla de venta se convierte en el registro de pedido.
+
+![Diálogo "Nuevo pedido" con una línea y el subtotal estimado](Reguistro%20visual/F-19-01-dialogo-subtotal.png)
+*Diálogo "Nuevo pedido" con una línea y el subtotal estimado*
+
+![Aviso de producto repetido en el borrador](Reguistro%20visual/F-19-02-producto-repetido.png)
+*Aviso de producto repetido en el borrador*
+
+![Aviso de mesa obligatoria para un pedido en mesa](Reguistro%20visual/F-19-03-mesa-obligatoria.png)
+*Aviso de mesa obligatoria para un pedido en mesa*
+
+![Pedido nuevo en el listado, con su detalle desplegado](Reguistro%20visual/F-19-04-pedido-expandido.png)
+*Pedido nuevo en el listado, con su detalle desplegado*
+
+![`ng build` sin errores](Reguistro%20visual/F-19-05-ng-build.png)
+*`ng build` sin errores*
+
+### F-20. Detalle de pedido y anulación (ISS-07, adaptado)
+
+Se crea la pantalla `/pedidos/:id` con la cabecera del pedido (fecha, cliente, sede, mesa, canal, estados y total) y sus líneas. El número del pedido en el listado enlaza a esa pantalla. La anulación llama a `DELETE /api/pedidos/{id}/`, pide confirmación, y al terminar recarga el pedido: queda en estado Cancelado y el botón de anular se oculta.
+
+Adaptaciones frente a la guía: en BrasaGo no hay endpoint de líneas separado, así que el detalle usa los `details` que ya trae el pedido. No hay stock, así que el panel de stock bajo no aplica (se reemplaza por pedidos de hoy, pagos pendientes y entregas en camino). La ruta `pedidos/:id` se marca como renderizado en cliente (`app.routes.server.ts`), porque depende de un parámetro que no se puede prerenderizar.
+
+![Detalle del pedido #7 con el botón Anular visible](Reguistro%20visual/F-20-01-detalle-con-anular.png)
+*Detalle del pedido #7 con el botón Anular visible*
+
+![Mismo pedido después de anularlo: estado Cancelado, registro Inactivo y botón oculto](Reguistro%20visual/F-20-02-anulado.png)
+*Mismo pedido después de anularlo: estado Cancelado, registro Inactivo y botón oculto*
+
+![Listado de pedidos con el pedido #7 en estado Cancelado](Reguistro%20visual/F-20-03-listado-cancelado.png)
+*Listado de pedidos con el pedido #7 en estado Cancelado*
+
+![`ng build` sin errores después del cambio de renderizado](Reguistro%20visual/F-20-04-ng-build.png)
+*`ng build` sin errores después del cambio de renderizado*
+
+---
+
+### F-21. ISS-07 completado: líneas de pedido y panel del día
+
+- Página `/detalle-pedidos` con las líneas de todos los pedidos (10 líneas), búsqueda y enlace al número de pedido. Captura 11.
+- Panel `/dashboard` con datos del día tomados de la API: pedidos, total vendido, pagos pendientes y entregas en camino. Captura 10.
+- Build de producción correcto: "Prerendered 11 static routes" antes del login y 13 después. Captura 12.
+- Adaptación: el panel no muestra stock porque BrasaGo no maneja inventario de producto terminado.
+
+### F-22. Login con JWT, sesión, interceptores y perfil (ISS-08)
+
+- Login en `/login` contra `POST /api/auth/login/`. Con credenciales incorrectas muestra "Usuario o contraseña incorrectos." (401).
+- Con credenciales correctas guarda `access` y `refresh` en `localStorage` (clave `brasago.session.v1`) y entra al panel.
+- `SessionStore` (signals) guarda tokens y usuario. Al recargar (F5) restaura la sesión y vuelve a pedir el perfil.
+- `authInterceptor` agrega `Authorization: Bearer` a las peticiones de la API. Ante un 401 llama a `auth/refresh/` (una sola renovación en vuelo) y reintenta la petición. Evidencia: 401, refresh 200 y reintento 200 (captura 14).
+- `errorInterceptor` muestra avisos (toast) para 403, 404, 409, 5xx y falta de conexión.
+- Perfil en `/perfil` con usuario, nombre, correo y estado. Cerrar sesión llama a `auth/logout/` (204) y limpia la sesión (capturas 12 y 13).
+- Menú lateral visible solo con sesión, con el grupo "Cuenta" y "Mi perfil".
+- Pruebas: `ng test` con 13 archivos y 22 pruebas pasando. El `app.spec.ts` necesitó el proveedor `MessageService` porque el componente raíz ahora muestra avisos.
+- Pendiente para ISS-09: guards de rutas. Por ahora, entrar a `/login` con sesión activa no redirige al panel.
+
 ---
 
 ## 7. Pruebas
@@ -618,13 +685,12 @@ npm test           # pruebas
 npm run build      # build de producción
 ```
 
-El usuario de `dev-credentials.ts` debe tener acceso a los recursos de la API (por ejemplo con `python manage.py grant_all_access <usuario>`).
+El login ahora es real: en `/login` se escribe el usuario y la contraseña del backend (JWT). `dev-credentials.ts` ya no se usa para iniciar sesión; solo lo usa `seed_frontend.py` si se pide la clave por consola. El usuario debe tener acceso a la API (por ejemplo con `python manage.py grant_all_access <usuario>`).
 
 ---
 
 ## 10. Pendiente
 
-- Registro de pedidos desde la pantalla (ISS-06).
-- Dashboard de ventas (ISS-07).
-- Login real con JWT (se omitió por alcance).
+- Guards de rutas (ISS-09): redirigir a `/login` sin sesión y a `/dashboard` con sesión.
+- Pantalla de permisos de la guía: no aplica a BrasaGo porque el backend no expone permisos por pantalla.
 - Pantallas de sedes y mesas, cuando el backend exponga sus endpoints.

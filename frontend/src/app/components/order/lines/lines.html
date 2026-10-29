@@ -1,0 +1,59 @@
+<section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-800">Líneas de pedido</h2>
+      <p class="text-sm text-slate-500">{{ filtered().length }} {{ filtered().length === 1 ? 'línea' : 'líneas' }}</p>
+    </div>
+    <input
+      pInputText
+      type="text"
+      class="w-full md:w-80"
+      placeholder="Buscar por producto o número de pedido"
+      [value]="search()"
+      (input)="onSearch($event)"
+    />
+  </div>
+
+  @if (error()) {
+    <div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ error() }}</div>
+  }
+
+  <p-table
+    [value]="filtered()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [stripedRows]="true"
+    dataKey="id"
+    size="small"
+    [tableStyle]="{ 'min-width': '50rem' }"
+  >
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="orderId">Pedido <p-sort-icon field="orderId" /></th>
+        <th pSortableColumn="productName">Producto <p-sort-icon field="productName" /></th>
+        <th pSortableColumn="quantity">Cantidad <p-sort-icon field="quantity" /></th>
+        <th>Precio unitario</th>
+        <th pSortableColumn="total">Total <p-sort-icon field="total" /></th>
+        <th>Notas</th>
+        <th pSortableColumn="status">Estado <p-sort-icon field="status" /></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-row>
+      <tr>
+        <td><a [routerLink]="['/pedidos', row.orderId]" class="font-medium text-teal-700 hover:underline">#{{ row.orderId }}</a></td>
+        <td>{{ row.productName }}</td>
+        <td>{{ row.quantity }}</td>
+        <td>{{ row.unitPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+        <td>{{ row.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+        <td>{{ row.notes ?? '—' }}</td>
+        <td><p-tag [value]="label(row.status)" [severity]="severity(row.status)" /></td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr><td colspan="7" class="p-6 text-center text-slate-500">No hay líneas para mostrar.</td></tr>
+    </ng-template>
+  </p-table>
+</section>

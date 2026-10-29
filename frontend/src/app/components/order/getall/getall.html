@@ -1,5 +1,5 @@
 <section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-  <div class="mb-4 flex items-center justify-between gap-3">
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
       <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
         <i class="pi pi-shopping-cart text-lg"></i>
@@ -9,7 +9,10 @@
         <p class="text-sm text-slate-500">{{ items().length }} {{ items().length === 1 ? 'registro' : 'registros' }}</p>
       </div>
     </div>
-    <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="load()" />
+    <div class="flex gap-2">
+      <p-button label="Nuevo pedido" icon="pi pi-plus" (onClick)="openCreate()" />
+      <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
   </div>
 
   @if (error()) {
@@ -53,7 +56,7 @@
             [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
           />
         </td>
-        <td>#{{ row.id }}</td>
+        <td><a [routerLink]="['/pedidos', row.id]" class="font-medium text-teal-700 hover:underline">#{{ row.id }}</a></td>
         <td>{{ row.orderedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
         <td>{{ row.clientName ?? 'Sin cliente' }}</td>
         <td>{{ row.branchName }}</td>
@@ -103,3 +106,126 @@
     </ng-template>
   </p-table>
 </section>
+
+<p-dialog
+  [visible]="dialogOpen()"
+  (visibleChange)="dialogOpen.set($event)"
+  [modal]="true"
+  header="Nuevo pedido"
+  [style]="{ width: '44rem' }"
+>
+  <div class="flex flex-col gap-4">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div class="flex flex-col gap-1">
+        <label for="client" class="text-sm font-medium text-slate-700">Cliente (opcional)</label>
+        <p-select
+          inputId="client"
+          [ngModel]="clientId()"
+          (ngModelChange)="clientId.set($event)"
+          [options]="clients()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Sin cliente"
+          [showClear]="true"
+          styleClass="w-full"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="channel" class="text-sm font-medium text-slate-700">Canal</label>
+        <p-select
+          inputId="channel"
+          [ngModel]="channel()"
+          (ngModelChange)="channel.set($event)"
+          [options]="channels"
+          optionLabel="label"
+          optionValue="value"
+          styleClass="w-full"
+        />
+      </div>
+
+      @if (needsTable()) {
+        <div class="flex flex-col gap-1 md:col-span-2">
+          <label for="table" class="text-sm font-medium text-slate-700">Mesa</label>
+          <p-select
+            inputId="table"
+            [ngModel]="tableId()"
+            (ngModelChange)="tableId.set($event)"
+            [options]="tables"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Elige una mesa"
+            styleClass="w-full"
+          />
+        </div>
+      }
+    </div>
+
+    <div class="rounded-lg bg-slate-50 p-3">
+      <p class="mb-2 text-sm font-semibold text-slate-700">Agregar producto</p>
+      <div class="flex flex-wrap items-end gap-2">
+        <p-select
+          [ngModel]="productId()"
+          (ngModelChange)="productId.set($event)"
+          [options]="products()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Producto"
+          styleClass="w-64"
+        />
+        <p-inputnumber
+          [ngModel]="quantity()"
+          (ngModelChange)="quantity.set($event ?? 1)"
+          [min]="1"
+          [showButtons]="true"
+          styleClass="w-28"
+        />
+        <p-button label="Agregar" icon="pi pi-plus" severity="secondary" (onClick)="addLine()" />
+      </div>
+      @if (lineError()) {
+        <small class="mt-2 block text-red-600">{{ lineError() }}</small>
+      }
+    </div>
+
+    @if (lines().length) {
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-slate-500">
+            <th class="py-1">Producto</th>
+            <th class="py-1">Cantidad</th>
+            <th class="py-1">Precio</th>
+            <th class="py-1">Total</th>
+            <th class="py-1"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of lines(); track l.productId) {
+            <tr class="border-t border-slate-200">
+              <td class="py-1">{{ l.name }}</td>
+              <td class="py-1">{{ l.quantity }}</td>
+              <td class="py-1">{{ l.unitPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td class="py-1">{{ l.unitPrice * l.quantity | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td class="py-1">
+                <p-button icon="pi pi-times" [text]="true" [rounded]="true" severity="danger" (onClick)="removeLine(l.productId)" />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <p class="text-right text-sm font-semibold text-slate-800">
+        Subtotal estimado: {{ subtotal() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+      </p>
+    } @else {
+      <p class="text-sm text-slate-500">Aún no hay productos en el pedido.</p>
+    }
+
+    @if (formError()) {
+      <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ formError() }}</div>
+    }
+
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="dialogOpen.set(false)" />
+      <p-button label="Registrar pedido" icon="pi pi-check" [loading]="saving()" [disabled]="lines().length === 0" (onClick)="submit()" />
+    </div>
+  </div>
+</p-dialog>

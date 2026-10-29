@@ -1,0 +1,56 @@
+<section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <a routerLink="/pedidos" class="text-sm text-teal-700 hover:underline">← Volver a pedidos</a>
+      <h2 class="mt-1 text-xl font-semibold text-slate-800">Pedido #{{ order()?.id }}</h2>
+    </div>
+    @if (order() && !isVoided()) {
+      <p-button label="Anular pedido" icon="pi pi-ban" severity="danger" [outlined]="true" [loading]="voiding()" (onClick)="anular()" />
+    }
+  </div>
+
+  @if (error()) {
+    <div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="text-slate-500">Cargando pedido…</p>
+  } @else if (order(); as o) {
+    <dl class="mb-5 grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+      <div><dt class="text-slate-500">Fecha</dt><dd class="font-medium">{{ o.orderedAt | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+      <div><dt class="text-slate-500">Cliente</dt><dd class="font-medium">{{ o.clientName ?? 'Sin cliente' }}</dd></div>
+      <div><dt class="text-slate-500">Sede</dt><dd class="font-medium">{{ o.branchName }}</dd></div>
+      <div><dt class="text-slate-500">Mesa</dt><dd class="font-medium">{{ o.tableName ?? '—' }}</dd></div>
+      <div><dt class="text-slate-500">Canal</dt><dd class="font-medium">{{ label(o.channel) }}</dd></div>
+      <div><dt class="text-slate-500">Estado del pedido</dt><dd><p-tag [value]="label(o.orderStatus)" [severity]="severity(o.orderStatus)" /></dd></div>
+      <div><dt class="text-slate-500">Registro</dt><dd><p-tag [value]="label(o.status)" [severity]="severity(o.status)" /></dd></div>
+      <div><dt class="text-slate-500">Total</dt><dd class="font-semibold">{{ o.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+    </dl>
+
+    <h3 class="mb-2 text-sm font-semibold text-slate-700">Líneas del pedido</h3>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-slate-500">
+          <th class="py-1">Producto</th>
+          <th class="py-1">Cantidad</th>
+          <th class="py-1">Precio unitario</th>
+          <th class="py-1">Total</th>
+          <th class="py-1">Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of o.details; track d.id) {
+          <tr class="border-t border-slate-200">
+            <td class="py-1">{{ d.productName }}</td>
+            <td class="py-1">{{ d.quantity }}</td>
+            <td class="py-1">{{ d.unitPrice | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+            <td class="py-1">{{ d.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+            <td class="py-1"><p-tag [value]="label(d.status)" [severity]="severity(d.status)" /></td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="py-2 text-slate-500">Este pedido no tiene líneas.</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

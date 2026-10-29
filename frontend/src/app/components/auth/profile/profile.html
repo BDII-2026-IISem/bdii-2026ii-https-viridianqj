@@ -1,0 +1,25 @@
+<section class="max-w-xl rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+  <h2 class="mb-4 text-xl font-semibold text-slate-800">Mi perfil</h2>
+
+  @if (session.user(); as u) {
+    <dl class="grid grid-cols-2 gap-4 text-sm">
+      <div><dt class="text-slate-500">Usuario</dt><dd class="font-medium">{{ u.username }}</dd></div>
+      <div><dt class="text-slate-500">Nombre</dt><dd class="font-medium">{{ u.firstName }} {{ u.lastName }}</dd></div>
+      <div><dt class="text-slate-500">Correo</dt><dd class="font-medium">{{ u.email }}</dd></div>
+      <div><dt class="text-slate-500">Estado</dt><dd class="font-medium">{{ u.status }}</dd></div>
+    </dl>
+  } @else {
+    <p class="text-slate-500">Cargando perfil…</p>
+  }
+
+  <div class="mt-6">
+    <p-button
+      label="Cerrar sesión"
+      icon="pi pi-sign-out"
+      severity="danger"
+      [outlined]="true"
+      [loading]="loggingOut()"
+      (onClick)="logout()"
+    />
+  </div>
+</section>

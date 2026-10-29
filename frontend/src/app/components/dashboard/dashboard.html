@@ -1,0 +1,62 @@
+<section class="space-y-5">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-800">Panel del día</h2>
+      <p class="text-sm text-slate-500">Datos de hoy, tomados de la API</p>
+    </div>
+    <p-button label="Recargar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="load()" />
+  </div>
+
+  @if (error()) {
+    <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ error() }}</div>
+  }
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p class="text-sm text-slate-500">Pedidos de hoy</p>
+      <p class="mt-1 text-3xl font-semibold text-slate-800">{{ ordersToday().length }}</p>
+    </article>
+    <article class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p class="text-sm text-slate-500">Total vendido hoy</p>
+      <p class="mt-1 text-3xl font-semibold text-teal-700">{{ totalToday() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+    </article>
+    <article class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p class="text-sm text-slate-500">Pagos pendientes</p>
+      <p class="mt-1 text-3xl font-semibold text-amber-600">{{ pendingPayments() }}</p>
+    </article>
+    <article class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p class="text-sm text-slate-500">Entregas en camino</p>
+      <p class="mt-1 text-3xl font-semibold text-slate-800">{{ deliveriesOnRoad() }}</p>
+      <p class="mt-1 text-xs text-slate-500">{{ activeClients() }} clientes activos</p>
+    </article>
+  </div>
+
+  <section class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+    <h3 class="mb-3 text-sm font-semibold text-slate-700">Pedidos de hoy</h3>
+    <p-table [value]="recentOrders()" [loading]="loading()" size="small" [tableStyle]="{ 'min-width': '40rem' }">
+      <ng-template #header>
+        <tr>
+          <th>Pedido</th>
+          <th>Hora</th>
+          <th>Cliente</th>
+          <th>Canal</th>
+          <th>Total</th>
+          <th>Estado</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td><a [routerLink]="['/pedidos', row.id]" class="font-medium text-teal-700 hover:underline">#{{ row.id }}</a></td>
+          <td>{{ row.orderedAt | date: 'HH:mm' }}</td>
+          <td>{{ row.clientName ?? 'Sin cliente' }}</td>
+          <td>{{ label(row.channel) }}</td>
+          <td>{{ row.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td><p-tag [value]="label(row.orderStatus)" [severity]="severity(row.orderStatus)" /></td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="6" class="p-6 text-center text-slate-500">No hay pedidos hoy.</td></tr>
+      </ng-template>
+    </p-table>
+  </section>
+</section>

@@ -1,0 +1,32 @@
+<div class="flex min-h-[70vh] items-center justify-center">
+  <section class="w-full max-w-sm rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+    <h2 class="text-xl font-semibold text-slate-800">Iniciar sesión</h2>
+    <p class="mb-5 text-sm text-slate-500">Accede con tu usuario de BrasaGo.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <label for="username" class="text-sm font-medium text-slate-700">Usuario</label>
+        <input pInputText id="username" formControlName="username" autocomplete="username" />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="password" class="text-sm font-medium text-slate-700">Contraseña</label>
+        <p-password
+          inputId="password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          autocomplete="current-password"
+        />
+      </div>
+
+      @if (error()) {
+        <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ error() }}</div>
+      }
+
+      <p-button type="submit" label="Entrar" icon="pi pi-sign-in" [loading]="saving()" [disabled]="form.invalid" styleClass="w-full" />
+    </form>
+  </section>
+</div>

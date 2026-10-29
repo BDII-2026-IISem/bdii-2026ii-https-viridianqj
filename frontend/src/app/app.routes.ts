@@ -1,7 +1,22 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'clientes' },
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  {
+    path: 'login',
+    title: 'Iniciar sesión',
+    loadComponent: () => import('./components/auth/login/login').then((m) => m.Login),
+  },
+  {
+    path: 'perfil',
+    title: 'Perfil',
+    loadComponent: () => import('./components/auth/profile/profile').then((m) => m.Profile),
+  },
+  {
+    path: 'dashboard',
+    title: 'Panel',
+    loadComponent: () => import('./components/dashboard/dashboard').then((m) => m.Dashboard),
+  },
   {
     path: 'clientes',
     title: 'Clientes',
@@ -16,6 +31,16 @@ export const routes: Routes = [
     path: 'pedidos',
     title: 'Pedidos',
     loadComponent: () => import('./components/order/getall/getall').then((m) => m.Getall),
+  },
+  {
+    path: 'pedidos/:id',
+    title: 'Detalle de pedido',
+    loadComponent: () => import('./components/order/detail/detail').then((m) => m.Detail),
+  },
+  {
+    path: 'detalle-pedidos',
+    title: 'Líneas de pedido',
+    loadComponent: () => import('./components/order/lines/lines').then((m) => m.Lines),
   },
   {
     path: 'pagos',
@@ -47,5 +72,5 @@ export const routes: Routes = [
     title: 'Entregas',
     loadComponent: () => import('./components/delivery/getall/getall').then((m) => m.Getall),
   },
-  { path: '**', redirectTo: 'clientes' },
+  { path: '**', redirectTo: 'dashboard' },
 ];
