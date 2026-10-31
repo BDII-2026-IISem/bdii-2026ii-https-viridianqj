@@ -96,6 +96,26 @@ Evidencia: capturas de `iss-11-*` e `iss-13-12.png` en [Reguistro visual](Bitaco
 
 ---
 
+---
+
+## Tercera parte: frontend Angular (solo parte de negocio)
+
+Frontend Angular 22 con PrimeNG 22 y Tailwind 4, siguiendo la guía frontend2026 de Tecnogua (ISS-00 a ISS-11) adaptada al modelo de BrasaGo. Bitácora completa con evidencias: [bitacora-frontend.md](Bitacora%20Frontend/bitacora-frontend.md). Código en la carpeta [frontend](frontend/).
+
+| Paso | Qué se hizo | Unidad (ISS) |
+|---|---|---|
+| 1 | Proyecto Angular, PrimeNG, Tailwind y licencia | ISS-00, ISS-01 |
+| 2 | Plantilla (encabezado, menú lateral y pie) y base del consumo de la API | ISS-01A, ISS-02 |
+| 3 | Listados de las nueve entidades del negocio | ISS-03, ISS-05, ISS-06 |
+| 4 | CRUD de clientes y productos, registro de pedidos, detalle y anulación | ISS-03, ISS-05, ISS-06, ISS-07 |
+| 5 | Login JWT, sesión, interceptores y perfil | ISS-08 |
+| 6 | Permisos por recurso, guards, menú y botones filtrados | ISS-08, ISS-09 |
+| 7 | Identidad visual de BrasaGo | Transversal |
+
+**Pruebas:** `npm test` con 29 pruebas en 16 archivos, en verde. Ver F-25 y las capturas de `Bitacora Frontend/Reguistro visual/`.
+
+---
+
 ## Historial de commits
 
 Cada commit del repositorio es una entrega del trabajo; el orden cronológico se ve con `git log --reverse`.
