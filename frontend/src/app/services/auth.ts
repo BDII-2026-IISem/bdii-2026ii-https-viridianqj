@@ -1,10 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, catchError, finalize, map, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  finalize,
+  forkJoin,
+  map,
+  shareReplay,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { SessionStore, SessionUser, TokenPair } from '../core/session';
+import { EffectivePermission, SessionStore, SessionUser, TokenPair } from '../core/session';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -19,7 +29,7 @@ export class AuthService {
   login(username: string, password: string): Observable<SessionUser> {
     return this.http.post<TokenPair>(`${this.base}/login/`, { username, password }).pipe(
       tap((pair) => this.session.saveTokens(pair)),
-      switchMap(() => this.profile()),
+      switchMap(() => this.refreshSession()),
       catchError((err) => {
         this.session.clear();
         return throwError(() => err);
@@ -27,10 +37,24 @@ export class AuthService {
     );
   }
 
+  // Perfil y permisos en paralelo: la sesión queda lista solo cuando ambos responden.
+  refreshSession(): Observable<SessionUser> {
+    return forkJoin([this.profile(), this.permissions()]).pipe(map(([user]) => user));
+  }
+
   profile(): Observable<SessionUser> {
     return this.http
       .get<SessionUser>(`${this.base}/profile/`)
       .pipe(tap((user) => this.session.setUser(user)));
+  }
+
+  permissions(): Observable<EffectivePermission[]> {
+    return this.http
+      .get<{ permissions: EffectivePermission[] }>(`${this.base}/permissions/`)
+      .pipe(
+        map((res) => res.permissions),
+        tap((list) => this.session.setPermissions(list)),
+      );
   }
 
   refreshAccess(): Observable<string> {
@@ -42,7 +66,7 @@ export class AuthService {
           map((pair) => pair.access),
           catchError((err) => {
             this.session.clear();
-            this.router.navigate(['/login']);
+            this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
             return throwError(() => err);
           }),
           finalize(() => (this.inFlight = null)),

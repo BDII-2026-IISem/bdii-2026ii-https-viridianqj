@@ -1,3 +1,4 @@
+import { HasPermission } from '../../../shared/directives/has-permission';
 import { CurrencyPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
@@ -16,7 +17,7 @@ import { stateLabel, stateSeverity } from '../../../shared/state-severity';
 @Component({
   selector: 'app-getall',
   standalone: true,
-  imports: [ReactiveFormsModule, TableModule, Button, Tag, Dialog, InputText, InputNumber, CurrencyPipe],
+  imports: [HasPermission, ReactiveFormsModule, TableModule, Button, Tag, Dialog, InputText, InputNumber, CurrencyPipe],
   templateUrl: './getall.html',
   styleUrl: './getall.css',
 })

@@ -1,0 +1,10 @@
+<section class="mx-auto max-w-lg rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200">
+  <i class="pi pi-lock text-4xl text-[#e8502a]"></i>
+  <h2 class="mt-3 text-xl font-semibold text-slate-800">No tienes permiso para esta pantalla</h2>
+  @if (permission()) {
+    <p class="mt-2 text-sm text-slate-500">Permiso requerido: <code>{{ permission() }}</code></p>
+  }
+  <a routerLink="/dashboard" class="mt-5 inline-block rounded-lg bg-[#e8502a] px-4 py-2 text-sm font-semibold text-white">
+    Volver al panel
+  </a>
+</section>

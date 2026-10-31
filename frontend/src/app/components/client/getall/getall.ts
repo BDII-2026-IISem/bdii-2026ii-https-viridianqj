@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { HasPermission } from '../../../shared/directives/has-permission';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Button } from 'primeng/button';
@@ -15,7 +16,7 @@ import { stateLabel, stateSeverity } from '../../../shared/state-severity';
 @Component({
   selector: 'app-getall',
   standalone: true,
-  imports: [ReactiveFormsModule, TableModule, Button, Tag, Dialog, InputText, Select],
+  imports: [HasPermission, ReactiveFormsModule, TableModule, Button, Tag, Dialog, InputText, Select],
   templateUrl: './getall.html',
   styleUrl: './getall.css',
 })
@@ -56,7 +57,7 @@ export class Getall implements OnInit {
     documentType: ['CC', Validators.required],
     documentNumber: ['', [Validators.required, Validators.maxLength(30)]],
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150)]],
-    phone: ['', Validators.maxLength(30)],
+    phone: ['', [Validators.minLength(7), Validators.maxLength(30), Validators.pattern(/^[0-9+\-() ]*$/)]],
     email: ['', [Validators.email, Validators.maxLength(150)]],
   });
 

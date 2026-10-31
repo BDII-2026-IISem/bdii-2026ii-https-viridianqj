@@ -10,7 +10,7 @@
       </div>
     </div>
     <div class="flex gap-2">
-      <p-button label="Nuevo producto" icon="pi pi-plus" (onClick)="openCreate()" />
+      <p-button label="Nuevo producto" *appHasPermission="'POST /api/productos/'" icon="pi pi-plus" (onClick)="openCreate()" />
       <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="load()" />
     </div>
   </div>
@@ -62,9 +62,9 @@
         <td>{{ row.price | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
         <td><p-tag [value]="label(row.status)" [severity]="severity(row.status)" /></td>
         <td class="flex gap-1">
-          <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" (onClick)="openEdit(row)" />
+          <p-button icon="pi pi-pencil" *appHasPermission="'PATCH /api/productos/:id/'" [text]="true" [rounded]="true" severity="secondary" (onClick)="openEdit(row)" />
           <p-button
-            icon="pi pi-trash"
+            icon="pi pi-trash" *appHasPermission="'DELETE /api/productos/:id/'"
             [text]="true"
             [rounded]="true"
             severity="danger"

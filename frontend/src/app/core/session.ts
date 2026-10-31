@@ -17,15 +17,28 @@ export interface SessionUser {
   status: string;
 }
 
+export interface EffectivePermission {
+  method: string;
+  path: string;
+  role: string;
+}
+
 const STORAGE_KEY = 'brasago.session.v1';
+
+// "/api/clientes/5/" y "/api/clientes/:id" describen la misma ruta.
+function normalizePath(path: string): string {
+  return path.replace(/\/+$/, '').replace(/\/\d+(?=\/|$)/g, '/:id');
+}
 
 @Injectable({ providedIn: 'root' })
 export class SessionStore {
   private readonly _tokens = signal<TokenPair | null>(this.restore());
   private readonly _user = signal<SessionUser | null>(null);
+  private readonly _permissions = signal<EffectivePermission[]>([]);
 
   readonly tokens = this._tokens.asReadonly();
   readonly user = this._user.asReadonly();
+  readonly permissions = this._permissions.asReadonly();
   readonly isAuthenticated = computed(() => this._tokens() !== null);
 
   accessToken(): string | null {
@@ -49,9 +62,23 @@ export class SessionStore {
     this._user.set(user);
   }
 
+  setPermissions(list: EffectivePermission[]): void {
+    this._permissions.set(list);
+  }
+
+  // key con formato "MÉTODO /api/recurso" (con o sin :id, con o sin barra final).
+  canPermission(key: string): boolean {
+    const [method, ...rest] = key.trim().split(' ');
+    const path = normalizePath(rest.join(' '));
+    return this._permissions().some(
+      (p) => p.method === method.toUpperCase() && normalizePath(p.path) === path,
+    );
+  }
+
   clear(): void {
     this._tokens.set(null);
     this._user.set(null);
+    this._permissions.set([]);
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {

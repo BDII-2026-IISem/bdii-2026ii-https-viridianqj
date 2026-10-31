@@ -1,3 +1,4 @@
+import { HasPermission } from '../../../shared/directives/has-permission';
 import { RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -30,7 +31,7 @@ interface DraftLine {
 @Component({
   selector: 'app-getall',
   standalone: true,
-  imports: [FormsModule, RouterLink, TableModule, Button, Tag, Dialog, Select, InputNumber, CurrencyPipe, DatePipe],
+  imports: [HasPermission, FormsModule, RouterLink, TableModule, Button, Tag, Dialog, Select, InputNumber, CurrencyPipe, DatePipe],
   templateUrl: './getall.html',
   styleUrl: './getall.css',
 })

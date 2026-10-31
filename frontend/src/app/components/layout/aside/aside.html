@@ -1,1 +1,3 @@
-<p-panelmenu [model]="items" [multiple]="true" styleClass="w-full" />
+<nav aria-label="Navegación principal" (click)="onNavClick($event)">
+  <p-panelmenu [model]="visibleItems()" [multiple]="true" />
+</nav>

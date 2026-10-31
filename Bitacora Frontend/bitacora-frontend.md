@@ -9,38 +9,44 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | **Alcance** | Estructura por componentes, plantilla (encabezado, menú lateral y pie), y listado ("mostrar") de las 9 entidades del negocio desde la API Django |
 | **Guía de referencia** | [Angular 20 · APIs con Django](https://tecnogua.com/academic/site/frontend/angular20/apis_django/), con la instalación y el cliente Django del mismo sitio |
 | **Backend consumido** | API REST de BrasaGo (Django 5.2 + DRF), `http://127.0.0.1:8000/api` |
-| **Pruebas** | 22 pruebas OK en 13 archivos (`ng test`), ver sección 7 |
-| **Fecha de cierre** | 24 de octubre de 2026 |
+| **Pruebas** | 29 pruebas OK en 16 archivos (`ng test`), ver sección 7 |
+| **Fecha de cierre** | 31 de octubre de 2026 |
 
 ---
 
 ## 1. Estado general
 
+ISS = issue de la guía frontend2026. Extra BrasaGo = pantalla propia del dominio, sin ISS en la guía. Transversal = pruebas, build, repositorio y datos de ejemplo.
+
 | Paso | Tema | Estado |
 |---|---|---|
-| F-00 | Requisitos y versiones | Bien |
-| F-01 | Proyecto Angular, PrimeNG y Tailwind | Bien |
-| F-02 | Plantilla: encabezado, menú lateral y pie | Bien |
-| F-03 | Arranque de la aplicación | Bien |
-| F-04 | Acceso a la API en desarrollo (login automático e interceptor) | Reemplazado por F-22 |
-| F-05 | Base del consumo: `BaseApi`, modelos y estado | Bien |
-| F-06 | Listado de clientes | Bien |
-| F-07 | Licencia de PrimeNG | Bien |
-| F-08 | Listado de productos | Bien |
-| F-09 | Listado de pedidos con detalle desplegable | Bien |
-| F-10 | Listados de pagos y reservas | Bien |
-| F-11 | Listados de insumos, recetas, domiciliarios y entregas | Bien |
-| F-12 | Pruebas automáticas | Bien |
-| F-13 | Build de producción | Bien |
-| F-14 | Repositorio y manejo de secretos | Bien |
-| F-15 | Datos de ejemplo para las pantallas | Bien |
-| F-16 | CRUD de clientes (alta, edición, baja y búsqueda) | Bien |
-| F-17 | CRUD de productos (alta, edición, baja y búsqueda) | Bien |
-| F-18 | Pruebas después de los CRUD | Bien |
-| F-19 | Registro de pedidos desde la pantalla (ISS-06) | Bien |
-| F-20 | Detalle de pedido y anulación (ISS-07, parcial: sin panel) | Bien |
-| F-21 | ISS-07 completado: líneas de pedido y panel del día | Bien |
-| F-22 | Login con JWT, sesión, interceptores y perfil (ISS-08) | Bien |
+| F-00 · ISS-00 | Requisitos y versiones | Bien |
+| F-01 · ISS-01 | Proyecto Angular, PrimeNG y Tailwind | Bien |
+| F-02 · ISS-01A | Plantilla: encabezado, menú lateral y pie | Bien |
+| F-03 · ISS-01 | Arranque de la aplicación | Bien |
+| F-04 · ISS-02 | Acceso a la API en desarrollo (login automático e interceptor) | Reemplazado por F-22 |
+| F-05 · ISS-02 | Base del consumo: `BaseApi`, modelos y estado | Bien |
+| F-06 · ISS-03 | Listado de clientes | Bien |
+| F-07 · ISS-01 | Licencia de PrimeNG | Bien |
+| F-08 · ISS-05 | Listado de productos | Bien |
+| F-09 · ISS-06 | Listado de pedidos con detalle desplegable | Bien |
+| F-10 · Extra BrasaGo | Listados de pagos y reservas | Bien |
+| F-11 · Extra BrasaGo | Listados de insumos, recetas, domiciliarios y entregas | Bien |
+| F-12 · Transversal | Pruebas automáticas | Bien |
+| F-13 · Transversal | Build de producción | Bien |
+| F-14 · Transversal | Repositorio y manejo de secretos | Bien |
+| F-15 · Transversal | Datos de ejemplo para las pantallas | Bien |
+| F-16 · ISS-03 | CRUD de clientes (alta, edición, baja y búsqueda) | Bien |
+| F-17 · ISS-05 | CRUD de productos (alta, edición, baja y búsqueda) | Bien |
+| F-18 · Transversal | Pruebas después de los CRUD | Bien |
+| F-19 · ISS-06 | Registro de pedidos desde la pantalla | Bien |
+| F-20 · ISS-07 | Detalle de pedido y anulación (parcial: sin panel) | Bien |
+| F-21 · ISS-07 | ISS-07 completado: líneas de pedido y panel del día | Bien |
+| F-22 · ISS-08 | Login con JWT, sesión, interceptores y perfil | Bien |
+| F-23 · ISS-01B | Layout y menú responsivo (adaptado) | Bien |
+| F-24 · ISS-02 a ISS-08 | Revisión contra la guía y correcciones de validación y redirección | Bien |
+| F-25 · ISS-08 a ISS-09 | Permisos por recurso, guards y menú filtrado | Bien |
+| F-26 · Transversal | Identidad visual de BrasaGo (tema naranja, logo y capas CSS) | Bien |
 
 ---
 
@@ -139,7 +145,7 @@ Dentro de `@Component`, `standalone: true` indica que el componente no necesita 
 
 ## 6. Detalle por paso
 
-### F-00. Requisitos y versiones
+### F-00 · ISS-00 · Requisitos y versiones
 
 Se comprobaron las versiones de Angular CLI, Node y npm, y que el backend responde en el puerto 8000 con el usuario de desarrollo.
 
@@ -150,7 +156,7 @@ Se comprobaron las versiones de Angular CLI, Node y npm, y que el backend respon
 *Backend en marcha y recursos concedidos al usuario de desarrollo*
 
 
-### F-01. Proyecto Angular, PrimeNG y Tailwind
+### F-01 · ISS-01 · Proyecto Angular, PrimeNG y Tailwind
 
 Se creó el proyecto `front-brasago` con Angular 22 (CSS, enrutamiento y SSR), y se instalaron PrimeNG, `@primeuix/themes`, PrimeIcons y Tailwind 4 (configurado en `.postcssrc.json` y `styles.css`). Se generaron los `environments` con la URL de la API.
 
@@ -185,7 +191,7 @@ Se creó el proyecto `front-brasago` con Angular 22 (CSS, enrutamiento y SSR), y
 *`app.config.ts` con el tema Aura de PrimeNG*
 
 
-### F-02. Plantilla: encabezado, menú lateral y pie
+### F-02 · ISS-01A · Plantilla: encabezado, menú lateral y pie
 
 Se generaron los componentes `header`, `aside` y `footer` en `components/layout/`. El menú lateral usa `PanelMenu` de PrimeNG con cuatro grupos (Negocio, Salón, Cocina y Domicilios) y `routerLink` en cada opción. `app.html` los organiza con Tailwind: encabezado arriba, menú a la izquierda, contenido en el centro (`router-outlet`) y pie abajo.
 
@@ -220,7 +226,7 @@ Se generaron los componentes `header`, `aside` y `footer` en `components/layout/
 *Plantilla completa en el navegador*
 
 
-### F-03. Arranque de la aplicación
+### F-03 · ISS-01 · Arranque de la aplicación
 
 Primera ejecución con `npm start`: la aplicación abre en `localhost:4200`.
 
@@ -228,7 +234,7 @@ Primera ejecución con `npm start`: la aplicación abre en `localhost:4200`.
 *Página inicial de Angular funcionando*
 
 
-### F-04. Acceso a la API en desarrollo
+### F-04 · ISS-02 · Acceso a la API en desarrollo
 
 Todas las rutas de negocio exigen JWT. Para no construir la pantalla de login (fuera del alcance), el servicio `DevAuth` inicia sesión con un usuario de desarrollo y guarda el token. El interceptor `devAuthInterceptor` añade `Authorization: Bearer` a las peticiones a la API y, ante un 401, vuelve a iniciar sesión y reintenta una vez. Las credenciales viven en un archivo fuera de git.
 
@@ -245,7 +251,7 @@ Todas las rutas de negocio exigen JWT. Para no construir la pantalla de login (f
 *`app.config.ts` registrando el interceptor*
 
 
-### F-05. Base del consumo de la API
+### F-05 · ISS-02 · Base del consumo de la API
 
 `BaseApi<T>` concentra el `getAll()` contra `environment.apiUrl`; cada servicio solo declara su `path`. `shared/state-severity.ts` traduce los estados (`ACTIVE`, `PENDIENTE`, etc.) a etiqueta y color del `p-tag`.
 
@@ -262,7 +268,7 @@ Todas las rutas de negocio exigen JWT. Para no construir la pantalla de login (f
 *`state-severity.ts`*
 
 
-### F-06. Listado de clientes
+### F-06 · ISS-03 · Listado de clientes
 
 Primer listado completo con tabla, paginador, ordenamiento y botón Actualizar. Al inicio salió con 0 registros porque la base estaba vacía; se crearon dos clientes desde Swagger y aparecieron. Las peticiones `login/` y `clientes/` responden 200.
 
@@ -291,7 +297,7 @@ Primer listado completo con tabla, paginador, ordenamiento y botón Actualizar. 
 *Clientes con 2 registros*
 
 
-### F-07. Licencia de PrimeNG
+### F-07 · ISS-01 · Licencia de PrimeNG
 
 PrimeNG 22 mostraba el aviso rojo "Invalid PrimeUI License". Se configuró la licencia gratuita Community en `providePrimeNG({ license })`, leída desde `environments/primeng-license.ts` (archivo fuera de git).
 
@@ -302,7 +308,7 @@ PrimeNG 22 mostraba el aviso rojo "Invalid PrimeUI License". Se configuró la li
 *Aplicación sin el aviso de licencia*
 
 
-### F-08. Listado de productos
+### F-08 · ISS-05 · Listado de productos
 
 Modelo, servicio (`productos`), componente y ruta. El precio se formatea en pesos colombianos con `CurrencyPipe`. Se crearon tres productos desde Swagger.
 
@@ -325,7 +331,7 @@ Modelo, servicio (`productos`), componente y ruta. El precio se formatea en peso
 *Listado de productos*
 
 
-### F-09. Listado de pedidos con detalle
+### F-09 · ISS-06 · Listado de pedidos con detalle
 
 Cada pedido de la API trae una lista `details`. La fila principal muestra fecha, cliente, sede, mesa, canal, total y estado. Con `pRowToggler` se abre la plantilla `#expandedrow`, que recorre `row.details` con `@for` y dibuja una tabla con producto, cantidad, precio unitario, total y notas. Un pedido necesita una sede, que se creó desde el Django Admin porque la API no tiene endpoint para sedes.
 
@@ -354,7 +360,7 @@ Cada pedido de la API trae una lista `details`. La fila principal muestra fecha,
 *Listado de pedidos (aquí se ve el problema del traductor, corregido en la sección 8)*
 
 
-### F-10. Listados de pagos y reservas
+### F-10 · Extra BrasaGo · Listados de pagos y reservas
 
 Mismo patrón: modelo, servicio, componente y ruta. Las capturas finales se tomaron con los datos de ejemplo del paso F-15.
 
@@ -386,7 +392,7 @@ Mismo patrón: modelo, servicio, componente y ruta. Las capturas finales se toma
 *Listado de reservas (3 registros)*
 
 
-### F-11. Listados de insumos, recetas, domiciliarios y entregas
+### F-11 · Extra BrasaGo · Listados de insumos, recetas, domiciliarios y entregas
 
 Los cuatro siguen el mismo patrón. Los servicios se generaron con un bucle de shell, porque solo cambian el nombre y la ruta. Las capturas finales se tomaron con los datos de ejemplo del paso F-15.
 
@@ -439,7 +445,7 @@ Los cuatro siguen el mismo patrón. Los servicios se generaron con un bucle de s
 *Listado de entregas (2 registros)*
 
 
-### F-12. Pruebas automáticas
+### F-12 · Transversal · Pruebas automáticas
 
 Los `spec.ts` generados por Angular fallan cuando el componente usa `HttpClient`. Se reescribieron: cada `getall` comprueba que el componente se crea y que pide `GET /<ruta>/` (con `HttpTestingController` y `flush([])`). También se probaron `App` y el menú lateral. Resultado: **13 archivos y 22 pruebas OK**.
 
@@ -456,7 +462,7 @@ Los `spec.ts` generados por Angular fallan cuando el componente usa `HttpClient`
 *`ng test`: 13 archivos y 22 pruebas OK*
 
 
-### F-13. Build de producción
+### F-13 · Transversal · Build de producción
 
 `ng build` termina sin errores: una *chunk* por pantalla (carga perezosa) y 9 rutas prerenderizadas.
 
@@ -464,7 +470,7 @@ Los `spec.ts` generados por Angular fallan cuando el componente usa `HttpClient`
 *`ng build` sin errores*
 
 
-### F-14. Repositorio y manejo de secretos
+### F-14 · Transversal · Repositorio y manejo de secretos
 
 `dev-credentials.ts` y `primeng-license.ts` están en `.gitignore`. Se publican archivos `.example.ts` con valores falsos para que quien clone el repositorio pueda compilar. Antes de copiar el proyecto al repositorio se verificó que ninguna clave viaje en él.
 
@@ -481,7 +487,7 @@ Los `spec.ts` generados por Angular fallan cuando el componente usa `HttpClient`
 *Verificación: la licencia no está en el repositorio*
 
 
-### F-15. Datos de ejemplo para las pantallas
+### F-15 · Transversal · Datos de ejemplo para las pantallas
 
 Para mostrar las pantallas con información real se cargaron datos de ejemplo **a través de la propia API** (con JWT y todas sus validaciones), con el script `seed_frontend.py` de esta carpeta. Antes se crearon tres mesas con un comando de Django, porque la API no tiene endpoint para mesas, y una reserva necesita una. El script pide la contraseña por teclado y no la guarda.
 
@@ -504,7 +510,7 @@ Reglas del backend que condicionaron los datos: una entrega solo acepta pedidos 
 *Ejecución de `seed_frontend.py`: un `OK` por cada registro creado*
 
 
-### F-16. CRUD de clientes (ISS-03, adaptado)
+### F-16 · ISS-03 · CRUD de clientes (adaptado)
 
 Se amplió el listado de clientes con alta, edición, baja lógica y búsqueda. El servicio `ClientService` agrega `create`, `update` y `remove` sobre `/api/clientes/` (`POST`, `PATCH` y `DELETE`). El componente `getall` usa un formulario reactivo dentro de un `p-dialog`, que sirve tanto para alta como para edición.
 
@@ -525,7 +531,7 @@ Adaptaciones frente a la guía: la ruta es `/api/clientes/` (no `/api/clients/`)
 ![`ng build` sin errores](Reguistro%20visual/F-16-05-ng-build.png)
 *`ng build` sin errores*
 
-### F-17. CRUD de productos (ISS-05, adaptado)
+### F-17 · ISS-05 · CRUD de productos (adaptado)
 
 Se amplió el listado de productos con alta, edición, baja lógica y búsqueda. `ProductService` agrega `create`, `update` y `remove` sobre `/api/productos/`. El formulario valida SKU (2 a 50 caracteres), nombre (2 a 150), descripción opcional y precio no negativo, y lo envía como texto decimal, como lo espera el backend.
 
@@ -547,7 +553,7 @@ Adaptaciones frente a la guía: BrasaGo no tiene stock ni tipo de producto en el
 *`ng build` sin errores*
 
 
-### F-18. Pruebas después de los CRUD
+### F-18 · Transversal · Pruebas después de los CRUD
 
 Tras agregar alta, edición, baja y búsqueda, se volvió a ejecutar `npx ng test --no-watch`. Resultado: **13 archivos y 22 pruebas OK**, sin fallos. Las pruebas de `getall` de clientes y productos siguen pasando con el formulario y el servicio nuevos.
 
@@ -555,7 +561,7 @@ Tras agregar alta, edición, baja y búsqueda, se volvió a ejecutar `npx ng tes
 *`ng test` con 13 archivos y 22 pruebas OK*
 
 
-### F-19. Registro de pedidos desde la pantalla (ISS-06, adaptado)
+### F-19 · ISS-06 · Registro de pedidos desde la pantalla (adaptado)
 
 El listado de pedidos suma un diálogo "Nuevo pedido" con un borrador hecho con signals (sin `FormGroup`, como pide la guía). El cliente es opcional, el canal puede ser Mesa, Recogida o Domicilio, y cada línea se agrega con producto y cantidad. El servicio `OrderService.create` envía `POST /api/pedidos/` con `clientId`, `branchId`, `tableId`, `channel` e `items`.
 
@@ -578,7 +584,7 @@ Adaptaciones frente a la guía: no hay stock, impuestos ni descuentos en el diag
 ![`ng build` sin errores](Reguistro%20visual/F-19-05-ng-build.png)
 *`ng build` sin errores*
 
-### F-20. Detalle de pedido y anulación (ISS-07, adaptado)
+### F-20 · ISS-07 · Detalle de pedido y anulación (adaptado)
 
 Se crea la pantalla `/pedidos/:id` con la cabecera del pedido (fecha, cliente, sede, mesa, canal, estados y total) y sus líneas. El número del pedido en el listado enlaza a esa pantalla. La anulación llama a `DELETE /api/pedidos/{id}/`, pide confirmación, y al terminar recarga el pedido: queda en estado Cancelado y el botón de anular se oculta.
 
@@ -598,14 +604,14 @@ Adaptaciones frente a la guía: en BrasaGo no hay endpoint de líneas separado, 
 
 ---
 
-### F-21. ISS-07 completado: líneas de pedido y panel del día
+### F-21 · ISS-07 · Líneas de pedido y panel del día
 
 - Página `/detalle-pedidos` con las líneas de todos los pedidos (10 líneas), búsqueda y enlace al número de pedido. Captura 11.
 - Panel `/dashboard` con datos del día tomados de la API: pedidos, total vendido, pagos pendientes y entregas en camino. Captura 10.
 - Build de producción correcto: "Prerendered 11 static routes" antes del login y 13 después. Captura 12.
 - Adaptación: el panel no muestra stock porque BrasaGo no maneja inventario de producto terminado.
 
-### F-22. Login con JWT, sesión, interceptores y perfil (ISS-08)
+### F-22 · ISS-08 · Login con JWT, sesión, interceptores y perfil
 
 - Login en `/login` contra `POST /api/auth/login/`. Con credenciales incorrectas muestra "Usuario o contraseña incorrectos." (401).
 - Con credenciales correctas guarda `access` y `refresh` en `localStorage` (clave `brasago.session.v1`) y entra al panel.
@@ -615,9 +621,110 @@ Adaptaciones frente a la guía: en BrasaGo no hay endpoint de líneas separado, 
 - Perfil en `/perfil` con usuario, nombre, correo y estado. Cerrar sesión llama a `auth/logout/` (204) y limpia la sesión (capturas 12 y 13).
 - Menú lateral visible solo con sesión, con el grupo "Cuenta" y "Mi perfil".
 - Pruebas: `ng test` con 13 archivos y 22 pruebas pasando. El `app.spec.ts` necesitó el proveedor `MessageService` porque el componente raíz ahora muestra avisos.
-- Pendiente para ISS-09: guards de rutas. Por ahora, entrar a `/login` con sesión activa no redirige al panel.
+- Guards de rutas (ISS-09): resueltos en F-25.
 
 ---
+
+### F-23 · ISS-01B · Layout y menú responsivo (adaptado)
+
+- **Tailwind 4 y PrimeNG 22** configurados con el orden de capas `theme, base, primeng, utilities`. En `app.config.ts`, `cssLayer` usa `name: 'primeng'` y ese orden, y `styles.css` declara `@layer theme, base, primeng, utilities;` antes de los `@import`. Evidencia: en DevTools aparecen `Layer primeng` y `Layer base`.
+- **Encabezado** (`components/layout/header`): botón de menú con `aria-label="Mostrar u ocultar el menú"`, que emite `menuRequested` con `output()`. Muestra el logo de BrasaGo sobre fondo blanco con línea naranja de marca.
+- **Menú lateral** (`components/layout/aside`): recibe los items con `input<MenuItem[]>()` (por defecto, la lista de la app) y los pinta con `p-panelmenu [model]`. Emite `navigated` solo al hacer clic en un enlace, para no cerrar el menú al expandir un grupo.
+- **Layout en `app.ts` / `app.html`**: en escritorio (1024 px o más), el botón colapsa y muestra el aside con signal `sidebarCollapsed`. En móvil, el botón abre un `p-drawer` desde la izquierda con signal `mobileOpen`, y al elegir una opción el drawer se cierra.
+- Decisión de adaptación: en la guía el estado vive en un componente `construir`; en BrasaGo vive en `App`, porque la app ya tiene un único shell de layout y no hace falta un componente más.
+- Pruebas: escritorio a 1280 px (menú visible y colapsado, capturas 15 y 15b), móvil a 390 px (drawer abierto, captura 16) y navegación desde el drawer a `/clientes` con cierre del drawer.
+- `ng build` sin errores y `ng test`: 13 archivos y 22 pruebas pasando.
+- Diferencias con la guía que se mantienen: rutas en `components/layout/` y no en `layout/`; el dominio de la app es BrasaGo, no StoreLab; los items del menú son los de BrasaGo.
+
+---
+
+### F-24 · ISS-02 a ISS-08 · Revisión contra la guía y correcciones
+
+Se revisó el proyecto contra las guías ISS-02 a ISS-08. BrasaGo tiene otro dominio que StoreLab, así que varias partes se adaptaron y no se copiaron literalmente.
+
+| Guía | Estado | Adaptación o diferencia |
+|---|---|---|
+| ISS-02 Núcleo y servicios | Parcial | Servicios por entidad sobre `BaseApi`, `environment` con `fileReplacements`. No hay carpeta `core/models/` separada, ni `NotificationService`, ni `toApiMessage` y `filterRows` como utilidades; los avisos usan `MessageService` directo. |
+| ISS-03 CRUD de clientes | Cumple con adaptación | Lista, búsqueda, alta, edición y baja lógica (cliente `Inactivo`, botón de baja deshabilitado). Se usan tipo y número de documento porque el backend de BrasaGo los exige. |
+| ISS-04 Tipos de producto | No aplica | BrasaGo no tiene tipos de producto. |
+| ISS-05 CRUD de productos | Parcial | Sin tipo de producto ni stock en BrasaGo, así que no hay "solo disponibles" ni alerta de stock bajo. |
+| ISS-06 Ventas y detalle | Parcial | Se implementó como pedidos: registro con líneas, validación de duplicados, totales y anulación (F-19 y F-20). No hay descuentos ni descuento de stock. |
+| ISS-08 Autenticación JWT | Parcial | Login, refresh con una sola renovación, logout con 204, sesión que sobrevive a F5 y `Bearer` en las peticiones. Endpoint `/auth/permissions/` agregado para el control de acceso por pantalla (ver F-25). |
+
+**Correcciones aplicadas en esta revisión:**
+- Validación del teléfono de clientes: mínimo 7 y máximo 30 caracteres, solo dígitos, `+`, `-`, espacios y paréntesis (ISS-03).
+- Al fallar el refresh del token, la redirección a `/login` conserva `returnUrl` para volver a la pantalla original (ISS-08).
+- Se eliminó un archivo auxiliar de Windows dentro de `src/environments/`.
+
+**Verificación:** `ng build` sin errores y `ng test --watch=false` con 22 pruebas pasando.
+
+---
+
+### F-25 · ISS-08 a ISS-09 · Permisos por recurso, guards y menú filtrado (adaptado)
+
+Qué se hizo:
+- Backend: endpoint `GET /api/auth/permissions/` (`apps/security/permissions_view.py`). Devuelve los permisos efectivos del usuario autenticado (`method`, `path` normalizado a `/api/recurso/:id/` y `role`), leídos de RoleUser → Role → ResourceRole → Resource, solo de registros ACTIVE. Pruebas de `apps.security`: 101 OK.
+- Frontend: `SessionStore` guarda los permisos y `canPermission('MÉTODO /ruta')` normaliza la ruta y compara el método. `AuthService.refreshSession()` carga perfil y permisos en paralelo con `forkJoin`.
+- Guards (`core/guards/rbac.guards.ts`): `authGuard` redirige a /login con `returnUrl`; `guestGuard` evita volver a login con sesión activa; `permissionGuard` lee `data.permission` de la ruta y, si falta, redirige a `/forbidden?permission=…`. La pantalla de acceso denegado está en `components/auth/forbidden`.
+- Menú filtrado: cada opción declara su permiso. Las opciones sin permiso y los grupos vacíos no se muestran (`components/layout/aside`).
+- Botones por permiso: directiva `*appHasPermission` (`shared/directives/has-permission.ts`) aplicada a Nuevo, editar y eliminar en Clientes y Productos, y a Nuevo pedido en Pedidos.
+
+Adaptación frente a la guía: la guía pide una pantalla de permisos por rol. En BrasaGo el RBAC ya existía en el backend (84 recursos generados con `seed_rbac`), así que el frontend lo consume en lugar de duplicarlo en código.
+
+Verificación:
+- `ng test`: 29 pruebas en verde (22 de los pasos anteriores, más 2 de la directiva, 3 de los guards y 2 del menú).
+- Usuario `sinpermisos`: el menú solo muestra Cuenta › Mi perfil, y entrar a /pedidos redirige a /forbidden con `GET /api/pedidos/`.
+- Usuario `elkin`: menú completo y botones visibles en Clientes, Productos y Pedidos.
+
+![F-25 Menú de sinpermisos: solo Cuenta › Mi perfil](Reguistro%20visual/F-25-01-menu-sinpermisos.png)
+*Menú de `sinpermisos`: solo el grupo Cuenta con Mi perfil (Captura 18)*
+
+![F-25 Acceso denegado al entrar a /pedidos](Reguistro%20visual/F-25-02-forbidden-pedidos.png)
+*`sinpermisos` entra a /pedidos y ve la pantalla de acceso denegado con `GET /api/pedidos/`*
+
+![F-25 Menú completo de elkin](Reguistro%20visual/F-25-03-menu-elkin.png)
+*Menú completo del usuario `elkin` (Captura 20)*
+
+![F-25 Build y 22 pruebas tras el menú filtrado](Reguistro%20visual/F-25-04-build-menu.png)
+*`ng build` sin errores y pruebas en verde tras filtrar el menú*
+
+![F-25 Pruebas tras la directiva de permisos](Reguistro%20visual/F-25-05-ng-test-directiva.png)
+*`ng test` con 24 pruebas tras agregar `*appHasPermission`*
+
+![F-25 Botones de Clientes con elkin](Reguistro%20visual/F-25-06-clientes-elkin.png)
+*Clientes con `elkin`: Nuevo cliente, editar y eliminar visibles (Captura 21)*
+
+![F-25 Botones de Productos con elkin](Reguistro%20visual/F-25-07-productos-elkin.png)
+*Productos con `elkin`: Nuevo producto, editar y eliminar visibles*
+
+![F-25 Botón Nuevo pedido con elkin](Reguistro%20visual/F-25-08-pedidos-elkin.png)
+*Pedidos con `elkin`: botón Nuevo pedido visible (Captura 23)*
+
+![F-25 Pruebas finales de ISS-09: 29 OK](Reguistro%20visual/F-25-09-ng-test-29.png)
+*`ng test` con 29 pruebas en verde, incluidos los guards y el menú (Captura 24)*
+
+### F-26 · Identidad visual de BrasaGo (adaptado)
+
+Se cambió el tema de PrimeNG y la hoja de estilos para que la interfaz use la identidad de BrasaGo, en vez del tema azul por defecto.
+
+- **Paleta de marca** en `app.config.ts`: `definePreset(Aura, …)` con una escala naranja a partir del color de marca `#e8502a` (nivel 500). Los extremos son `#fff4ef` (50) y `#32100a` (950), y así los botones principales, los enlaces y los estados activos del menú toman el naranja.
+- **Capas CSS** (`styles.css` y `cssLayer` en `providePrimeNG`): `theme, base, primeng, utilities`, para que Tailwind no pise los estilos de PrimeNG.
+- **Fondo y texto**: fondo `#f1f5f9` y texto `#1e293b` en `body`, con la fuente Inter.
+- **Encabezado**: logo `brasago-logo.png` sobre fondo blanco con una línea naranja inferior de 4 px (`border-[#e8502a]`).
+- **Tarjetas**: el panel, las tablas y los formularios se muestran en tarjetas blancas con sombra suave, sobre el fondo gris claro.
+
+Adaptación frente a la guía: la guía usa el tema de PrimeNG tal cual. Aquí se definió un preset propio porque la marca BrasaGo tiene color propio y el proyecto lo pidió así.
+
+Evidencias:
+
+![F-26 Encabezado con el logo de BrasaGo y la línea naranja](Reguistro%20visual/F-26-01-encabezado-logo.png)
+*Encabezado con el logo y la línea naranja de marca*
+
+![F-26 Botones y menú con el naranja de marca](Reguistro%20visual/F-26-02-tema-naranja.png)
+*Botón principal y estado activo del menú con el naranja de la marca*
+
+![F-26 app.config.ts con el preset de marca](Reguistro%20visual/F-26-03-app-config-preset.png)
+*`app.config.ts` con `definePreset` y la escala naranja*
 
 ## 7. Pruebas
 
@@ -629,8 +736,11 @@ Comando: `npx ng test --no-watch`.
 | `components/layout/aside/aside.spec.ts` | Se crea el menú lateral |
 | `components/layout/header/header.spec.ts` y `footer/footer.spec.ts` | Se crean el encabezado y el pie |
 | `app.spec.ts` | Se crea la aplicación |
+| `core/guards/rbac.guards.spec.ts` (3) | Guard de permisos concede o redirige a `/forbidden`, y `authGuard` redirige a `/login` |
+| `components/layout/aside/aside-filter.spec.ts` (2) | El menú oculta opciones y grupos sin permiso |
+| `shared/directives/has-permission.spec.ts` (2) | La directiva `*appHasPermission` muestra u oculta el elemento |
 
-Resultado: **13 archivos y 22 pruebas OK** (ver F-12). El ejecutor de pruebas es el que trae Angular 22 por defecto.
+Resultado: **16 archivos y 29 pruebas OK** (ver F-25). El ejecutor de pruebas es el que trae Angular 22 por defecto.
 
 ---
 
@@ -691,6 +801,8 @@ El login ahora es real: en `/login` se escribe el usuario y la contraseña del b
 
 ## 10. Pendiente
 
-- Guards de rutas (ISS-09): redirigir a `/login` sin sesión y a `/dashboard` con sesión.
-- Pantalla de permisos de la guía: no aplica a BrasaGo porque el backend no expone permisos por pantalla.
+- Pantallas de administración (ISS-10): usuarios, roles, recursos y permisos por usuario.
+- Build de producción, presupuestos, accesibilidad y checklist final (ISS-11).
+- Commit y push del trabajo a `motores` cuando termine ISS-11.
+- Pantalla de permisos de la guía: resuelta en F-25. El backend sí tiene RBAC; se expuso `GET /api/auth/permissions/` y el frontend filtra menú, botones y rutas con esos permisos.
 - Pantallas de sedes y mesas, cuando el backend exponga sus endpoints.
