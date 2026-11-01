@@ -106,5 +106,10 @@ export const routes: Routes = [
     data: { permission: 'GET /api/entregas/' },
     loadComponent: () => import('./components/delivery/getall/getall').then((m) => m.Getall),
   },
+    { path: 'admin/usuarios', canActivate: [permissionGuard], data: { permission: 'GET /api/users/' }, loadComponent: () => import('./components/admin/users/user-list/user-list').then((m) => m.UserList) },
+    { path: 'admin/roles', canActivate: [permissionGuard], data: { permission: 'GET /api/roles/' }, loadComponent: () => import('./components/admin/roles/role-list/role-list').then((m) => m.RoleList) },
+    { path: 'admin/recursos', canActivate: [permissionGuard], data: { permission: 'GET /api/resources/' }, loadComponent: () => import('./components/admin/resources/resource-list/resource-list').then((m) => m.ResourceList) },
+    { path: 'admin/asignaciones', canActivate: [permissionGuard], data: { permission: 'GET /api/role-users/' }, loadComponent: () => import('./components/admin/role-users/role-user-list/role-user-list').then((m) => m.RoleUserList) },
+    { path: 'admin/permisos', canActivate: [permissionGuard], data: { permission: 'GET /api/resource-roles/' }, loadComponent: () => import('./components/admin/resource-roles/resource-role-list/resource-role-list').then((m) => m.ResourceRoleList) },
   { path: '**', redirectTo: 'dashboard' },
 ];

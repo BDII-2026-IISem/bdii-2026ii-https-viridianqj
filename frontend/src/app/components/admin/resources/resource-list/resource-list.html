@@ -1,0 +1,73 @@
+<section class="flex flex-col gap-4">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-800">Recursos</h1>
+      <p class="text-sm text-slate-500">{{ items().length }} registros</p>
+    </div>
+    <div class="flex gap-2">
+      <p-button *appHasPermission="'POST /api/resources/'" label="Nuevo recurso" icon="pi pi-plus" (onClick)="openCreate()" />
+      <p-button label="Actualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" (onClick)="load()" />
+    </div>
+  </header>
+
+  <input pInputText class="w-full md:w-96" placeholder="Buscar por método o ruta" [value]="search()" (input)="search.set($any($event.target).value)" />
+
+  @if (error()) {
+    <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ error() }}</div>
+  }
+
+  <p-table [value]="filtered()" [loading]="loading()" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="id">ID <p-sort-icon field="id" /></th>
+        <th pSortableColumn="method">Método <p-sort-icon field="method" /></th>
+        <th pSortableColumn="route">Ruta <p-sort-icon field="route" /></th>
+        <th pSortableColumn="status">Estado <p-sort-icon field="status" /></th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>#{{ row.id }}</td>
+        <td><code>{{ row.method }}</code></td>
+        <td><code>{{ row.route }}</code></td>
+        <td><p-tag [value]="stateLabel(row.status)" [severity]="stateSeverity(row.status)" /></td>
+        <td class="flex gap-1">
+          <p-button *appHasPermission="'PATCH /api/resources/:id/'" icon="pi pi-pencil" [text]="true" (onClick)="openEdit(row)" />
+          <p-button *appHasPermission="'DELETE /api/resources/:id/'" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="remove(row)" />
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>
+
+<p-dialog [header]="editing() ? 'Editar recurso' : 'Nuevo recurso'" [visible]="dialogOpen()" (onHide)="dialogOpen.set(false)" [modal]="true" [style]="{ width: '30rem' }">
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-3">
+    <div class="flex flex-col gap-1">
+      <label for="method" class="text-sm font-medium text-slate-700">Método</label>
+      <p-select inputId="method" formControlName="method" [options]="verbOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="route" class="text-sm font-medium text-slate-700">Ruta</label>
+      <input pInputText id="route" formControlName="route" placeholder="/api/recurso/" />
+      @if (form.controls.route.touched && form.controls.route.invalid) {
+        <small class="text-red-600">La ruta debe empezar por /api/.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="status" class="text-sm font-medium text-slate-700">Estado</label>
+      <p-select inputId="status" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+
+    @if (formError()) {
+      <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ formError() }}</div>
+    }
+
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Cancelar" type="button" severity="secondary" [outlined]="true" (onClick)="dialogOpen.set(false)" />
+      <p-button label="Guardar" type="submit" [loading]="saving()" [disabled]="form.invalid" />
+    </div>
+  </form>
+</p-dialog>

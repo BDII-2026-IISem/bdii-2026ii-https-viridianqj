@@ -9,7 +9,7 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | **Alcance** | Estructura por componentes, plantilla (encabezado, menú lateral y pie), y listado ("mostrar") de las 9 entidades del negocio desde la API Django |
 | **Guía de referencia** | [Angular 20 · APIs con Django](https://tecnogua.com/academic/site/frontend/angular20/apis_django/), con la instalación y el cliente Django del mismo sitio |
 | **Backend consumido** | API REST de BrasaGo (Django 5.2 + DRF), `http://127.0.0.1:8000/api` |
-| **Pruebas** | 29 pruebas OK en 16 archivos (`ng test`), ver sección 7 |
+| **Pruebas** | 36 pruebas OK en 19 archivos (`ng test`), ver sección 7 |
 | **Fecha de cierre** | 31 de octubre de 2026 |
 
 ---
@@ -47,6 +47,7 @@ ISS = issue de la guía frontend2026. Extra BrasaGo = pantalla propia del domini
 | F-24 · ISS-02 a ISS-08 | Revisión contra la guía y correcciones de validación y redirección | Bien |
 | F-25 · ISS-08 a ISS-09 | Permisos por recurso, guards y menú filtrado | Bien |
 | F-26 · Transversal | Identidad visual de BrasaGo (tema naranja, logo y capas CSS) | Bien |
+| F-27 · ISS-10 | Administración RBAC: usuarios, roles, recursos, asignaciones, permisos por rol, ver permisos y menú Seguridad | Bien |
 
 ---
 
@@ -103,10 +104,13 @@ frontend/
         ├── shared/                     state-severity.ts
         ├── models/business/            client, product, order, payment, reservation,
         │                               supply, recipe, courier, delivery
-        ├── services/                   api.ts (BaseApi)
-        │   └── business/               un servicio por entidad
+        ├── models/security/            status, user, role, resource, role-user, resource-role
+        ├── services/                   api.ts (BaseApi), crud.ts (CrudApi)
+        │   ├── business/               un servicio por entidad
+        │   └── security/               user, role, resource, role-user, resource-role (CrudApi)
         └── components/
             ├── layout/                 header, aside, footer
+            ├── admin/users/user-list/  pantalla de usuarios (ISS-10)
             └── <entidad>/getall/       .html, .css, .ts y .spec.ts por pantalla
 ```
 
@@ -123,6 +127,8 @@ frontend/
 | Cocina | Recetas | `/recetas` | `/api/recetas/` |
 | Domicilios | Domiciliarios | `/domiciliarios` | `/api/domiciliarios/` |
 | Domicilios | Entregas | `/entregas` | `/api/entregas/` |
+
+Grupo Seguridad (ISS-10): Usuarios (`/admin/usuarios`), Roles (`/admin/roles`), Recursos (`/admin/recursos`), Asignaciones (`/admin/asignaciones`) y Permisos por rol (`/admin/permisos`). Cada ruta está protegida con `permissionGuard`.
 
 ---
 
@@ -149,10 +155,10 @@ Dentro de `@Component`, `standalone: true` indica que el componente no necesita 
 
 Se comprobaron las versiones de Angular CLI, Node y npm, y que el backend responde en el puerto 8000 con el usuario de desarrollo.
 
-![F-00 Angular CLI 22.2.4, Node 22.23.4 y npm 10.9.9](Reguistro%20visual/F-00-01-versiones.png)
+![F-00 Angular CLI 22.2.4, Node 22.23.4 y npm 10.9.9](Reguistro%20visual/ISS-00/F-00-01-versiones.png)
 *Angular CLI 22.2.4, Node 22.23.4 y npm 10.9.9*
 
-![F-00 Backend en marcha y recursos concedidos al usuario de desarrollo](Reguistro%20visual/F-00-02-backend-en-marcha.png)
+![F-00 Backend en marcha y recursos concedidos al usuario de desarrollo](Reguistro%20visual/ISS-00/F-00-02-backend-en-marcha.png)
 *Backend en marcha y recursos concedidos al usuario de desarrollo*
 
 
@@ -160,34 +166,34 @@ Se comprobaron las versiones de Angular CLI, Node y npm, y que el backend respon
 
 Se creó el proyecto `front-brasago` con Angular 22 (CSS, enrutamiento y SSR), y se instalaron PrimeNG, `@primeuix/themes`, PrimeIcons y Tailwind 4 (configurado en `.postcssrc.json` y `styles.css`). Se generaron los `environments` con la URL de la API.
 
-![F-01 `ng new front-brasago`](Reguistro%20visual/F-01-01-ng-new.png)
+![F-01 `ng new front-brasago`](Reguistro%20visual/ISS-01/F-01-01-ng-new.png)
 *`ng new front-brasago`*
 
-![F-01 Archivos creados por `ng new`](Reguistro%20visual/F-01-02-ng-new-archivos.png)
+![F-01 Archivos creados por `ng new`](Reguistro%20visual/ISS-01/F-01-02-ng-new-archivos.png)
 *Archivos creados por `ng new`*
 
-![F-01 Instalación de PrimeNG, temas e iconos](Reguistro%20visual/F-01-03-instalar-primeng.png)
+![F-01 Instalación de PrimeNG, temas e iconos](Reguistro%20visual/ISS-01/F-01-03-instalar-primeng.png)
 *Instalación de PrimeNG, temas e iconos*
 
-![F-01 Instalación de Tailwind y `.postcssrc.json`](Reguistro%20visual/F-01-04-instalar-tailwind.png)
+![F-01 Instalación de Tailwind y `.postcssrc.json`](Reguistro%20visual/ISS-01/F-01-04-instalar-tailwind.png)
 *Instalación de Tailwind y `.postcssrc.json`*
 
-![F-01 `styles.css` con Tailwind y PrimeIcons](Reguistro%20visual/F-01-05-styles-css.png)
+![F-01 `styles.css` con Tailwind y PrimeIcons](Reguistro%20visual/ISS-01/F-01-05-styles-css.png)
 *`styles.css` con Tailwind y PrimeIcons*
 
-![F-01 `ng generate environments`](Reguistro%20visual/F-01-06-generate-environments.png)
+![F-01 `ng generate environments`](Reguistro%20visual/ISS-01/F-01-06-generate-environments.png)
 *`ng generate environments`*
 
-![F-01 `environment.ts` con la URL de la API](Reguistro%20visual/F-01-07-environment-ts.png)
+![F-01 `environment.ts` con la URL de la API](Reguistro%20visual/ISS-01/F-01-07-environment-ts.png)
 *`environment.ts` con la URL de la API*
 
-![F-01 `angular.json`](Reguistro%20visual/F-01-08-angular-json.png)
+![F-01 `angular.json`](Reguistro%20visual/ISS-01/F-01-08-angular-json.png)
 *`angular.json`*
 
-![F-01 `app.ts` inicial](Reguistro%20visual/F-01-09-app-ts-inicial.png)
+![F-01 `app.ts` inicial](Reguistro%20visual/ISS-01/F-01-09-app-ts-inicial.png)
 *`app.ts` inicial*
 
-![F-01 `app.config.ts` con el tema Aura de PrimeNG](Reguistro%20visual/F-01-10-app-config-primeng.png)
+![F-01 `app.config.ts` con el tema Aura de PrimeNG](Reguistro%20visual/ISS-01/F-01-10-app-config-primeng.png)
 *`app.config.ts` con el tema Aura de PrimeNG*
 
 
@@ -195,34 +201,34 @@ Se creó el proyecto `front-brasago` con Angular 22 (CSS, enrutamiento y SSR), y
 
 Se generaron los componentes `header`, `aside` y `footer` en `components/layout/`. El menú lateral usa `PanelMenu` de PrimeNG con cuatro grupos (Negocio, Salón, Cocina y Domicilios) y `routerLink` en cada opción. `app.html` los organiza con Tailwind: encabezado arriba, menú a la izquierda, contenido en el centro (`router-outlet`) y pie abajo.
 
-![F-02 Generación de los tres componentes con `ng generate component`](Reguistro%20visual/F-02-01-ng-generate-layout.png)
+![F-02 Generación de los tres componentes con `ng generate component`](Reguistro%20visual/ISS-01A/F-02-01-ng-generate-layout.png)
 *Generación de los tres componentes con `ng generate component`*
 
-![F-02 `header.ts`](Reguistro%20visual/F-02-02-header-ts.png)
+![F-02 `header.ts`](Reguistro%20visual/ISS-01A/F-02-02-header-ts.png)
 *`header.ts`*
 
-![F-02 `header.html`](Reguistro%20visual/F-02-03-header-html.png)
+![F-02 `header.html`](Reguistro%20visual/ISS-01A/F-02-03-header-html.png)
 *`header.html`*
 
-![F-02 `footer.ts`](Reguistro%20visual/F-02-04-footer-ts.png)
+![F-02 `footer.ts`](Reguistro%20visual/ISS-01A/F-02-04-footer-ts.png)
 *`footer.ts`*
 
-![F-02 `footer.html`](Reguistro%20visual/F-02-05-footer-html.png)
+![F-02 `footer.html`](Reguistro%20visual/ISS-01A/F-02-05-footer-html.png)
 *`footer.html`*
 
-![F-02 `aside.ts` con los grupos del menú](Reguistro%20visual/F-02-06-aside-ts.png)
+![F-02 `aside.ts` con los grupos del menú](Reguistro%20visual/ISS-01A/F-02-06-aside-ts.png)
 *`aside.ts` con los grupos del menú*
 
-![F-02 `aside.html` con `p-panelmenu`](Reguistro%20visual/F-02-07-aside-html.png)
+![F-02 `aside.html` con `p-panelmenu`](Reguistro%20visual/ISS-01A/F-02-07-aside-html.png)
 *`aside.html` con `p-panelmenu`*
 
-![F-02 `app.ts` importando los tres componentes](Reguistro%20visual/F-02-08-app-ts.png)
+![F-02 `app.ts` importando los tres componentes](Reguistro%20visual/ISS-01A/F-02-08-app-ts.png)
 *`app.ts` importando los tres componentes*
 
-![F-02 `app.html` con la estructura de la página](Reguistro%20visual/F-02-09-app-html.png)
+![F-02 `app.html` con la estructura de la página](Reguistro%20visual/ISS-01A/F-02-09-app-html.png)
 *`app.html` con la estructura de la página*
 
-![F-02 Plantilla completa en el navegador](Reguistro%20visual/F-02-10-plantilla-navegador.png)
+![F-02 Plantilla completa en el navegador](Reguistro%20visual/ISS-01A/F-02-10-plantilla-navegador.png)
 *Plantilla completa en el navegador*
 
 
@@ -230,7 +236,7 @@ Se generaron los componentes `header`, `aside` y `footer` en `components/layout/
 
 Primera ejecución con `npm start`: la aplicación abre en `localhost:4200`.
 
-![F-03 Página inicial de Angular funcionando](Reguistro%20visual/F-03-01-primer-arranque.png)
+![F-03 Página inicial de Angular funcionando](Reguistro%20visual/ISS-01/F-03-01-primer-arranque.png)
 *Página inicial de Angular funcionando*
 
 
@@ -238,16 +244,16 @@ Primera ejecución con `npm start`: la aplicación abre en `localhost:4200`.
 
 Todas las rutas de negocio exigen JWT. Para no construir la pantalla de login (fuera del alcance), el servicio `DevAuth` inicia sesión con un usuario de desarrollo y guarda el token. El interceptor `devAuthInterceptor` añade `Authorization: Bearer` a las peticiones a la API y, ante un 401, vuelve a iniciar sesión y reintenta una vez. Las credenciales viven en un archivo fuera de git.
 
-![F-04 `environment.ts` con `apiUrl`](Reguistro%20visual/F-04-01-environment-api.png)
+![F-04 `environment.ts` con `apiUrl`](Reguistro%20visual/ISS-02/F-04-01-environment-api.png)
 *`environment.ts` con `apiUrl`*
 
-![F-04 `dev-auth.ts`](Reguistro%20visual/F-04-02-dev-auth.png)
+![F-04 `dev-auth.ts`](Reguistro%20visual/ISS-02/F-04-02-dev-auth.png)
 *`dev-auth.ts`*
 
-![F-04 `dev-auth.interceptor.ts`](Reguistro%20visual/F-04-03-dev-auth-interceptor.png)
+![F-04 `dev-auth.interceptor.ts`](Reguistro%20visual/ISS-02/F-04-03-dev-auth-interceptor.png)
 *`dev-auth.interceptor.ts`*
 
-![F-04 `app.config.ts` registrando el interceptor](Reguistro%20visual/F-04-04-app-config-interceptor.png)
+![F-04 `app.config.ts` registrando el interceptor](Reguistro%20visual/ISS-02/F-04-04-app-config-interceptor.png)
 *`app.config.ts` registrando el interceptor*
 
 
@@ -255,16 +261,16 @@ Todas las rutas de negocio exigen JWT. Para no construir la pantalla de login (f
 
 `BaseApi<T>` concentra el `getAll()` contra `environment.apiUrl`; cada servicio solo declara su `path`. `shared/state-severity.ts` traduce los estados (`ACTIVE`, `PENDIENTE`, etc.) a etiqueta y color del `p-tag`.
 
-![F-05 Modelo `ClientI`](Reguistro%20visual/F-05-01-modelo-cliente.png)
+![F-05 Modelo `ClientI`](Reguistro%20visual/ISS-02/F-05-01-modelo-cliente.png)
 *Modelo `ClientI`*
 
-![F-05 `BaseApi<T>`](Reguistro%20visual/F-05-02-base-api.png)
+![F-05 `BaseApi<T>`](Reguistro%20visual/ISS-02/F-05-02-base-api.png)
 *`BaseApi<T>`*
 
-![F-05 `ClientService` con el path `clientes`](Reguistro%20visual/F-05-03-servicio-clientes.png)
+![F-05 `ClientService` con el path `clientes`](Reguistro%20visual/ISS-02/F-05-03-servicio-clientes.png)
 *`ClientService` con el path `clientes`*
 
-![F-05 `state-severity.ts`](Reguistro%20visual/F-05-04-state-severity.png)
+![F-05 `state-severity.ts`](Reguistro%20visual/ISS-02/F-05-04-state-severity.png)
 *`state-severity.ts`*
 
 
@@ -272,28 +278,28 @@ Todas las rutas de negocio exigen JWT. Para no construir la pantalla de login (f
 
 Primer listado completo con tabla, paginador, ordenamiento y botón Actualizar. Al inicio salió con 0 registros porque la base estaba vacía; se crearon dos clientes desde Swagger y aparecieron. Las peticiones `login/` y `clientes/` responden 200.
 
-![F-06 `getall.ts` del componente de clientes](Reguistro%20visual/F-06-01-getall-ts.png)
+![F-06 `getall.ts` del componente de clientes](Reguistro%20visual/ISS-03/F-06-01-getall-ts.png)
 *`getall.ts` del componente de clientes*
 
-![F-06 `getall.html` con `p-table`](Reguistro%20visual/F-06-02-getall-html.png)
+![F-06 `getall.html` con `p-table`](Reguistro%20visual/ISS-03/F-06-02-getall-html.png)
 *`getall.html` con `p-table`*
 
-![F-06 `app.routes.ts` con la ruta `clientes` (carga perezosa)](Reguistro%20visual/F-06-03-rutas.png)
+![F-06 `app.routes.ts` con la ruta `clientes` (carga perezosa)](Reguistro%20visual/ISS-03/F-06-03-rutas.png)
 *`app.routes.ts` con la ruta `clientes` (carga perezosa)*
 
-![F-06 `npm start` compila sin errores](Reguistro%20visual/F-06-04-npm-start-ok.png)
+![F-06 `npm start` compila sin errores](Reguistro%20visual/ISS-03/F-06-04-npm-start-ok.png)
 *`npm start` compila sin errores*
 
-![F-06 Clientes con 0 registros (base vacía)](Reguistro%20visual/F-06-05-clientes-vacio.png)
+![F-06 Clientes con 0 registros (base vacía)](Reguistro%20visual/ISS-03/F-06-05-clientes-vacio.png)
 *Clientes con 0 registros (base vacía)*
 
-![F-06 Creación de un cliente desde Swagger](Reguistro%20visual/F-06-06-swagger-post-clientes.png)
+![F-06 Creación de un cliente desde Swagger](Reguistro%20visual/ISS-03/F-06-06-swagger-post-clientes.png)
 *Creación de un cliente desde Swagger*
 
-![F-06 Pestaña Network con `login/` y `clientes/` respondiendo](Reguistro%20visual/F-06-07-network.png)
+![F-06 Pestaña Network con `login/` y `clientes/` respondiendo](Reguistro%20visual/ISS-03/F-06-07-network.png)
 *Pestaña Network con `login/` y `clientes/` respondiendo*
 
-![F-06 Clientes con 2 registros](Reguistro%20visual/F-06-08-clientes-con-datos.png)
+![F-06 Clientes con 2 registros](Reguistro%20visual/ISS-03/F-06-08-clientes-con-datos.png)
 *Clientes con 2 registros*
 
 
@@ -301,10 +307,10 @@ Primer listado completo con tabla, paginador, ordenamiento y botón Actualizar. 
 
 PrimeNG 22 mostraba el aviso rojo "Invalid PrimeUI License". Se configuró la licencia gratuita Community en `providePrimeNG({ license })`, leída desde `environments/primeng-license.ts` (archivo fuera de git).
 
-![F-07 `app.config.ts` con `license: primengLicense`](Reguistro%20visual/F-07-01-app-config-licencia.png)
+![F-07 `app.config.ts` con `license: primengLicense`](Reguistro%20visual/ISS-01/F-07-01-app-config-licencia.png)
 *`app.config.ts` con `license: primengLicense`*
 
-![F-07 Aplicación sin el aviso de licencia](Reguistro%20visual/F-07-02-sin-aviso.png)
+![F-07 Aplicación sin el aviso de licencia](Reguistro%20visual/ISS-01/F-07-02-sin-aviso.png)
 *Aplicación sin el aviso de licencia*
 
 
@@ -312,22 +318,22 @@ PrimeNG 22 mostraba el aviso rojo "Invalid PrimeUI License". Se configuró la li
 
 Modelo, servicio (`productos`), componente y ruta. El precio se formatea en pesos colombianos con `CurrencyPipe`. Se crearon tres productos desde Swagger.
 
-![F-08 Modelo `ProductI` y `ProductService`](Reguistro%20visual/F-08-01-modelo-y-servicio.png)
+![F-08 Modelo `ProductI` y `ProductService`](Reguistro%20visual/ISS-05/F-08-01-modelo-y-servicio.png)
 *Modelo `ProductI` y `ProductService`*
 
-![F-08 `getall.ts` de productos](Reguistro%20visual/F-08-02-getall-ts.png)
+![F-08 `getall.ts` de productos](Reguistro%20visual/ISS-05/F-08-02-getall-ts.png)
 *`getall.ts` de productos*
 
-![F-08 `getall.html` de productos](Reguistro%20visual/F-08-03-getall-html.png)
+![F-08 `getall.html` de productos](Reguistro%20visual/ISS-05/F-08-03-getall-html.png)
 *`getall.html` de productos*
 
-![F-08 `app.routes.ts` con `clientes` y `productos`](Reguistro%20visual/F-08-04-rutas.png)
+![F-08 `app.routes.ts` con `clientes` y `productos`](Reguistro%20visual/ISS-05/F-08-04-rutas.png)
 *`app.routes.ts` con `clientes` y `productos`*
 
-![F-08 Creación de un producto desde Swagger](Reguistro%20visual/F-08-05-swagger-post-productos.png)
+![F-08 Creación de un producto desde Swagger](Reguistro%20visual/ISS-05/F-08-05-swagger-post-productos.png)
 *Creación de un producto desde Swagger*
 
-![F-08 Listado de productos](Reguistro%20visual/F-08-06-productos.png)
+![F-08 Listado de productos](Reguistro%20visual/ISS-05/F-08-06-productos.png)
 *Listado de productos*
 
 
@@ -335,28 +341,28 @@ Modelo, servicio (`productos`), componente y ruta. El precio se formatea en peso
 
 Cada pedido de la API trae una lista `details`. La fila principal muestra fecha, cliente, sede, mesa, canal, total y estado. Con `pRowToggler` se abre la plantilla `#expandedrow`, que recorre `row.details` con `@for` y dibuja una tabla con producto, cantidad, precio unitario, total y notas. Un pedido necesita una sede, que se creó desde el Django Admin porque la API no tiene endpoint para sedes.
 
-![F-09 Modelos `OrderI` y `OrderDetailI`](Reguistro%20visual/F-09-01-modelo-pedido.png)
+![F-09 Modelos `OrderI` y `OrderDetailI`](Reguistro%20visual/ISS-06/F-09-01-modelo-pedido.png)
 *Modelos `OrderI` y `OrderDetailI`*
 
-![F-09 `OrderService`](Reguistro%20visual/F-09-02-servicio-pedidos.png)
+![F-09 `OrderService`](Reguistro%20visual/ISS-06/F-09-02-servicio-pedidos.png)
 *`OrderService`*
 
-![F-09 `getall.ts` de pedidos](Reguistro%20visual/F-09-03-getall-ts.png)
+![F-09 `getall.ts` de pedidos](Reguistro%20visual/ISS-06/F-09-03-getall-ts.png)
 *`getall.ts` de pedidos*
 
-![F-09 `getall.html` con la fila desplegable `#expandedrow`](Reguistro%20visual/F-09-04-getall-html-detalle.png)
+![F-09 `getall.html` con la fila desplegable `#expandedrow`](Reguistro%20visual/ISS-06/F-09-04-getall-html-detalle.png)
 *`getall.html` con la fila desplegable `#expandedrow`*
 
-![F-09 `app.routes.ts` con la ruta `pedidos`](Reguistro%20visual/F-09-05-rutas.png)
+![F-09 `app.routes.ts` con la ruta `pedidos`](Reguistro%20visual/ISS-06/F-09-05-rutas.png)
 *`app.routes.ts` con la ruta `pedidos`*
 
-![F-09 Sede creada en el Django Admin](Reguistro%20visual/F-09-06-admin-sede.png)
+![F-09 Sede creada en el Django Admin](Reguistro%20visual/ISS-06/F-09-06-admin-sede.png)
 *Sede creada en el Django Admin*
 
-![F-09 Creación de un pedido desde Swagger](Reguistro%20visual/F-09-07-swagger-post-pedidos.png)
+![F-09 Creación de un pedido desde Swagger](Reguistro%20visual/ISS-06/F-09-07-swagger-post-pedidos.png)
 *Creación de un pedido desde Swagger*
 
-![F-09 Listado de pedidos con el detalle del pedido #3 desplegado](Reguistro%20visual/F-09-08-pedidos.png)
+![F-09 Listado de pedidos con el detalle del pedido #3 desplegado](Reguistro%20visual/ISS-06/F-09-08-pedidos.png)
 *Listado de pedidos (aquí se ve el problema del traductor, corregido en la sección 8)*
 
 
@@ -364,31 +370,31 @@ Cada pedido de la API trae una lista `details`. La fila principal muestra fecha,
 
 Mismo patrón: modelo, servicio, componente y ruta. Las capturas finales se tomaron con los datos de ejemplo del paso F-15.
 
-![F-10 Modelo y servicio de pagos, y generación del componente](Reguistro%20visual/F-10-01-pagos-modelo-servicio.png)
+![F-10 Modelo y servicio de pagos, y generación del componente](Reguistro%20visual/Extra-BrasaGo/F-10-01-pagos-modelo-servicio.png)
 *Modelo y servicio de pagos, y generación del componente*
 
-![F-10 `getall.ts` de pagos](Reguistro%20visual/F-10-02-pagos-getall-ts.png)
+![F-10 `getall.ts` de pagos](Reguistro%20visual/Extra-BrasaGo/F-10-02-pagos-getall-ts.png)
 *`getall.ts` de pagos*
 
-![F-10 `getall.html` de pagos](Reguistro%20visual/F-10-03-pagos-getall-html.png)
+![F-10 `getall.html` de pagos](Reguistro%20visual/Extra-BrasaGo/F-10-03-pagos-getall-html.png)
 *`getall.html` de pagos*
 
-![F-10 Modelo y servicio de reservas](Reguistro%20visual/F-10-04-reservas-modelo-servicio.png)
+![F-10 Modelo y servicio de reservas](Reguistro%20visual/Extra-BrasaGo/F-10-04-reservas-modelo-servicio.png)
 *Modelo y servicio de reservas*
 
-![F-10 `getall.ts` de reservas](Reguistro%20visual/F-10-05-reservas-getall-ts.png)
+![F-10 `getall.ts` de reservas](Reguistro%20visual/Extra-BrasaGo/F-10-05-reservas-getall-ts.png)
 *`getall.ts` de reservas*
 
-![F-10 `getall.html` de reservas](Reguistro%20visual/F-10-06-reservas-getall-html.png)
+![F-10 `getall.html` de reservas](Reguistro%20visual/Extra-BrasaGo/F-10-06-reservas-getall-html.png)
 *`getall.html` de reservas*
 
-![F-10 `app.routes.ts` con cinco pantallas](Reguistro%20visual/F-10-07-rutas.png)
+![F-10 `app.routes.ts` con cinco pantallas](Reguistro%20visual/Extra-BrasaGo/F-10-07-rutas.png)
 *`app.routes.ts` con cinco pantallas*
 
-![F-10 Listado de pagos (5 registros)](Reguistro%20visual/F-10-08-pagos.png)
+![F-10 Listado de pagos (5 registros)](Reguistro%20visual/Extra-BrasaGo/F-10-08-pagos.png)
 *Listado de pagos (5 registros)*
 
-![F-10 Listado de reservas (3 registros)](Reguistro%20visual/F-10-09-reservas.png)
+![F-10 Listado de reservas (3 registros)](Reguistro%20visual/Extra-BrasaGo/F-10-09-reservas.png)
 *Listado de reservas (3 registros)*
 
 
@@ -396,52 +402,52 @@ Mismo patrón: modelo, servicio, componente y ruta. Las capturas finales se toma
 
 Los cuatro siguen el mismo patrón. Los servicios se generaron con un bucle de shell, porque solo cambian el nombre y la ruta. Las capturas finales se tomaron con los datos de ejemplo del paso F-15.
 
-![F-11 Modelos de insumos, recetas, domiciliarios y entregas](Reguistro%20visual/F-11-01-modelos.png)
+![F-11 Modelos de insumos, recetas, domiciliarios y entregas](Reguistro%20visual/Extra-BrasaGo/F-11-01-modelos.png)
 *Modelos de insumos, recetas, domiciliarios y entregas*
 
-![F-11 Bucle que genera los cuatro servicios, y `ls` de modelos y servicios](Reguistro%20visual/F-11-02-bucle-servicios.png)
+![F-11 Bucle que genera los cuatro servicios, y `ls` de modelos y servicios](Reguistro%20visual/Extra-BrasaGo/F-11-02-bucle-servicios.png)
 *Bucle que genera los cuatro servicios, y `ls` de modelos y servicios*
 
-![F-11 Generación de los componentes](Reguistro%20visual/F-11-03-ng-generate.png)
+![F-11 Generación de los componentes](Reguistro%20visual/Extra-BrasaGo/F-11-03-ng-generate.png)
 *Generación de los componentes*
 
-![F-11 `getall.ts` de insumos](Reguistro%20visual/F-11-04-insumos-getall-ts.png)
+![F-11 `getall.ts` de insumos](Reguistro%20visual/Extra-BrasaGo/F-11-04-insumos-getall-ts.png)
 *`getall.ts` de insumos*
 
-![F-11 `getall.html` de insumos](Reguistro%20visual/F-11-05-insumos-getall-html.png)
+![F-11 `getall.html` de insumos](Reguistro%20visual/Extra-BrasaGo/F-11-05-insumos-getall-html.png)
 *`getall.html` de insumos*
 
-![F-11 `getall.ts` de recetas](Reguistro%20visual/F-11-06-recetas-getall-ts.png)
+![F-11 `getall.ts` de recetas](Reguistro%20visual/Extra-BrasaGo/F-11-06-recetas-getall-ts.png)
 *`getall.ts` de recetas*
 
-![F-11 `getall.html` de recetas](Reguistro%20visual/F-11-07-recetas-getall-html.png)
+![F-11 `getall.html` de recetas](Reguistro%20visual/Extra-BrasaGo/F-11-07-recetas-getall-html.png)
 *`getall.html` de recetas*
 
-![F-11 `getall.ts` de domiciliarios](Reguistro%20visual/F-11-08-domiciliarios-getall-ts.png)
+![F-11 `getall.ts` de domiciliarios](Reguistro%20visual/Extra-BrasaGo/F-11-08-domiciliarios-getall-ts.png)
 *`getall.ts` de domiciliarios*
 
-![F-11 `getall.html` de domiciliarios](Reguistro%20visual/F-11-09-domiciliarios-getall-html.png)
+![F-11 `getall.html` de domiciliarios](Reguistro%20visual/Extra-BrasaGo/F-11-09-domiciliarios-getall-html.png)
 *`getall.html` de domiciliarios*
 
-![F-11 `getall.ts` de entregas](Reguistro%20visual/F-11-10-entregas-getall-ts.png)
+![F-11 `getall.ts` de entregas](Reguistro%20visual/Extra-BrasaGo/F-11-10-entregas-getall-ts.png)
 *`getall.ts` de entregas*
 
-![F-11 `getall.html` de entregas](Reguistro%20visual/F-11-11-entregas-getall-html.png)
+![F-11 `getall.html` de entregas](Reguistro%20visual/Extra-BrasaGo/F-11-11-entregas-getall-html.png)
 *`getall.html` de entregas*
 
-![F-11 `app.routes.ts` con las nueve pantallas](Reguistro%20visual/F-11-12-rutas.png)
+![F-11 `app.routes.ts` con las nueve pantallas](Reguistro%20visual/Extra-BrasaGo/F-11-12-rutas.png)
 *`app.routes.ts` con las nueve pantallas*
 
-![F-11 Listado de insumos (5 registros)](Reguistro%20visual/F-11-13-insumos.png)
+![F-11 Listado de insumos (5 registros)](Reguistro%20visual/Extra-BrasaGo/F-11-13-insumos.png)
 *Listado de insumos (5 registros)*
 
-![F-11 Listado de recetas (6 registros)](Reguistro%20visual/F-11-14-recetas.png)
+![F-11 Listado de recetas (6 registros)](Reguistro%20visual/Extra-BrasaGo/F-11-14-recetas.png)
 *Listado de recetas (6 registros)*
 
-![F-11 Listado de domiciliarios (3 registros)](Reguistro%20visual/F-11-15-domiciliarios.png)
+![F-11 Listado de domiciliarios (3 registros)](Reguistro%20visual/Extra-BrasaGo/F-11-15-domiciliarios.png)
 *Listado de domiciliarios (3 registros)*
 
-![F-11 Listado de entregas (2 registros)](Reguistro%20visual/F-11-16-entregas.png)
+![F-11 Listado de entregas (2 registros)](Reguistro%20visual/Extra-BrasaGo/F-11-16-entregas.png)
 *Listado de entregas (2 registros)*
 
 
@@ -449,16 +455,16 @@ Los cuatro siguen el mismo patrón. Los servicios se generaron con un bucle de s
 
 Los `spec.ts` generados por Angular fallan cuando el componente usa `HttpClient`. Se reescribieron: cada `getall` comprueba que el componente se crea y que pide `GET /<ruta>/` (con `HttpTestingController` y `flush([])`). También se probaron `App` y el menú lateral. Resultado: **13 archivos y 22 pruebas OK**.
 
-![F-12 Bucle que genera los `spec.ts` de las nueve pantallas](Reguistro%20visual/F-12-01-bucle-specs.png)
+![F-12 Bucle que genera los `spec.ts` de las nueve pantallas](Reguistro%20visual/Transversal/F-12-01-bucle-specs.png)
 *Bucle que genera los `spec.ts` de las nueve pantallas*
 
-![F-12 `app.spec.ts`](Reguistro%20visual/F-12-02-app-spec.png)
+![F-12 `app.spec.ts`](Reguistro%20visual/Transversal/F-12-02-app-spec.png)
 *`app.spec.ts`*
 
-![F-12 `aside.spec.ts`](Reguistro%20visual/F-12-03-aside-spec.png)
+![F-12 `aside.spec.ts`](Reguistro%20visual/Transversal/F-12-03-aside-spec.png)
 *`aside.spec.ts`*
 
-![F-12 `ng test`: 13 archivos y 22 pruebas OK](Reguistro%20visual/F-12-04-ng-test.png)
+![F-12 `ng test`: 13 archivos y 22 pruebas OK](Reguistro%20visual/Transversal/F-12-04-ng-test.png)
 *`ng test`: 13 archivos y 22 pruebas OK*
 
 
@@ -466,7 +472,7 @@ Los `spec.ts` generados por Angular fallan cuando el componente usa `HttpClient`
 
 `ng build` termina sin errores: una *chunk* por pantalla (carga perezosa) y 9 rutas prerenderizadas.
 
-![F-13 `ng build` sin errores](Reguistro%20visual/F-13-01-ng-build.png)
+![F-13 `ng build` sin errores](Reguistro%20visual/Transversal/F-13-01-ng-build.png)
 *`ng build` sin errores*
 
 
@@ -474,16 +480,16 @@ Los `spec.ts` generados por Angular fallan cuando el componente usa `HttpClient`
 
 `dev-credentials.ts` y `primeng-license.ts` están en `.gitignore`. Se publican archivos `.example.ts` con valores falsos para que quien clone el repositorio pueda compilar. Antes de copiar el proyecto al repositorio se verificó que ninguna clave viaje en él.
 
-![F-14 Comprobación del `.gitignore` y creación de los archivos de ejemplo](Reguistro%20visual/F-14-01-gitignore-y-ejemplos.png)
+![F-14 Comprobación del `.gitignore` y creación de los archivos de ejemplo](Reguistro%20visual/Transversal/F-14-01-gitignore-y-ejemplos.png)
 *Comprobación del `.gitignore` y creación de los archivos de ejemplo*
 
-![F-14 Archivo de ejemplo corregido y build posterior](Reguistro%20visual/F-14-02-ejemplo-y-build.png)
+![F-14 Archivo de ejemplo corregido y build posterior](Reguistro%20visual/Transversal/F-14-02-ejemplo-y-build.png)
 *Archivo de ejemplo corregido y build posterior*
 
-![F-14 Copia del frontend al repositorio sin `node_modules`, `dist` ni secretos](Reguistro%20visual/F-14-03-copia-a-motores.png)
+![F-14 Copia del frontend al repositorio sin `node_modules`, `dist` ni secretos](Reguistro%20visual/Transversal/F-14-03-copia-a-motores.png)
 *Copia del frontend al repositorio sin `node_modules`, `dist` ni secretos*
 
-![F-14 Verificación: la licencia no está en el repositorio](Reguistro%20visual/F-14-04-verificacion.png)
+![F-14 Verificación: la licencia no está en el repositorio](Reguistro%20visual/Transversal/F-14-04-verificacion.png)
 *Verificación: la licencia no está en el repositorio*
 
 
@@ -503,10 +509,10 @@ Reglas del backend que condicionaron los datos: una entrega solo acepta pedidos 
 | Reservas | 3, en tres mesas y dos días |
 | Entregas | 2: una en camino y una pendiente |
 
-![F-15 Creación de las mesas](Reguistro%20visual/F-15-01-mesas.png)
+![F-15 Creación de las mesas](Reguistro%20visual/Transversal/F-15-01-mesas.png)
 *Creación de las mesas desde el shell de Django*
 
-![F-15 Ejecución del script](Reguistro%20visual/F-15-02-script.png)
+![F-15 Ejecución del script](Reguistro%20visual/Transversal/F-15-02-script.png)
 *Ejecución de `seed_frontend.py`: un `OK` por cada registro creado*
 
 
@@ -516,19 +522,19 @@ Se amplió el listado de clientes con alta, edición, baja lógica y búsqueda. 
 
 Adaptaciones frente a la guía: la ruta es `/api/clientes/` (no `/api/clients/`), el estado es `ACTIVE`/`INACTIVE`, y la confirmación de baja usa el cuadro nativo `confirm()`. Los errores del backend (por ejemplo, documento duplicado) se muestran dentro del diálogo.
 
-![Diálogo "Nuevo cliente" con validación de nombre corto](Reguistro%20visual/F-16-01-nombre-corto.png)
+![Diálogo "Nuevo cliente" con validación de nombre corto](Reguistro%20visual/ISS-03/F-16-01-nombre-corto.png)
 *Diálogo "Nuevo cliente" con validación de nombre corto*
 
-![Búsqueda por "laura" en el listado de clientes](Reguistro%20visual/F-16-02-buscar.png)
+![Búsqueda por "laura" en el listado de clientes](Reguistro%20visual/ISS-03/F-16-02-buscar.png)
 *Búsqueda por "laura" en el listado de clientes*
 
-![Error del backend por número de documento duplicado, mostrado en el diálogo](Reguistro%20visual/F-16-03-documento-duplicado.png)
+![Error del backend por número de documento duplicado, mostrado en el diálogo](Reguistro%20visual/ISS-03/F-16-03-documento-duplicado.png)
 *Error del backend por número de documento duplicado, mostrado en el diálogo*
 
-![Cliente dado de baja: el estado queda como Inactivo](Reguistro%20visual/F-16-04-baja.png)
+![Cliente dado de baja: el estado queda como Inactivo](Reguistro%20visual/ISS-03/F-16-04-baja.png)
 *Cliente dado de baja: el estado queda como Inactivo*
 
-![`ng build` sin errores](Reguistro%20visual/F-16-05-ng-build.png)
+![`ng build` sin errores](Reguistro%20visual/ISS-03/F-16-05-ng-build.png)
 *`ng build` sin errores*
 
 ### F-17 · ISS-05 · CRUD de productos (adaptado)
@@ -537,19 +543,19 @@ Se amplió el listado de productos con alta, edición, baja lógica y búsqueda.
 
 Adaptaciones frente a la guía: BrasaGo no tiene stock ni tipo de producto en el diagrama, así que se omiten las filas en ámbar por stock bajo, el selector de tipo y el interruptor de disponibles. El precio se muestra en pesos colombianos. La baja usa el mismo patrón que clientes.
 
-![Diálogo "Nuevo producto" con validación de SKU corto](Reguistro%20visual/F-17-01-sku-corto.png)
+![Diálogo "Nuevo producto" con validación de SKU corto](Reguistro%20visual/ISS-05/F-17-01-sku-corto.png)
 *Diálogo "Nuevo producto" con validación de SKU corto*
 
-![Producto nuevo en la tabla, con precio en pesos](Reguistro%20visual/F-17-02-producto-nuevo.png)
+![Producto nuevo en la tabla, con precio en pesos](Reguistro%20visual/ISS-05/F-17-02-producto-nuevo.png)
 *Producto nuevo en la tabla, con precio en pesos*
 
-![Error del backend por SKU duplicado, mostrado en el diálogo](Reguistro%20visual/F-17-03-sku-duplicado.png)
+![Error del backend por SKU duplicado, mostrado en el diálogo](Reguistro%20visual/ISS-05/F-17-03-sku-duplicado.png)
 *Error del backend por SKU duplicado, mostrado en el diálogo*
 
-![Producto dado de baja: el estado queda como Inactivo](Reguistro%20visual/F-17-04-baja.png)
+![Producto dado de baja: el estado queda como Inactivo](Reguistro%20visual/ISS-05/F-17-04-baja.png)
 *Producto dado de baja: el estado queda como Inactivo*
 
-![`ng build` sin errores](Reguistro%20visual/F-17-05-ng-build.png)
+![`ng build` sin errores](Reguistro%20visual/ISS-05/F-17-05-ng-build.png)
 *`ng build` sin errores*
 
 
@@ -557,7 +563,7 @@ Adaptaciones frente a la guía: BrasaGo no tiene stock ni tipo de producto en el
 
 Tras agregar alta, edición, baja y búsqueda, se volvió a ejecutar `npx ng test --no-watch`. Resultado: **13 archivos y 22 pruebas OK**, sin fallos. Las pruebas de `getall` de clientes y productos siguen pasando con el formulario y el servicio nuevos.
 
-![F-18 ng test después de los CRUD](Reguistro%20visual/F-18-01-ng-test.png)
+![F-18 ng test después de los CRUD](Reguistro%20visual/Transversal/F-18-01-ng-test.png)
 *`ng test` con 13 archivos y 22 pruebas OK*
 
 
@@ -569,19 +575,19 @@ Reglas en el cliente: al menos un producto, cantidad entero mayor o igual a 1, s
 
 Adaptaciones frente a la guía: no hay stock, impuestos ni descuentos en el diagrama, así que se omiten los avisos de stock. La sede y las mesas son constantes del frontend (`shared/venue.ts`), porque la API no tiene endpoints para ellas. La pantalla de venta se convierte en el registro de pedido.
 
-![Diálogo "Nuevo pedido" con una línea y el subtotal estimado](Reguistro%20visual/F-19-01-dialogo-subtotal.png)
+![Diálogo "Nuevo pedido" con una línea y el subtotal estimado](Reguistro%20visual/ISS-06/F-19-01-dialogo-subtotal.png)
 *Diálogo "Nuevo pedido" con una línea y el subtotal estimado*
 
-![Aviso de producto repetido en el borrador](Reguistro%20visual/F-19-02-producto-repetido.png)
+![Aviso de producto repetido en el borrador](Reguistro%20visual/ISS-06/F-19-02-producto-repetido.png)
 *Aviso de producto repetido en el borrador*
 
-![Aviso de mesa obligatoria para un pedido en mesa](Reguistro%20visual/F-19-03-mesa-obligatoria.png)
+![Aviso de mesa obligatoria para un pedido en mesa](Reguistro%20visual/ISS-06/F-19-03-mesa-obligatoria.png)
 *Aviso de mesa obligatoria para un pedido en mesa*
 
-![Pedido nuevo en el listado, con su detalle desplegado](Reguistro%20visual/F-19-04-pedido-expandido.png)
+![Pedido nuevo en el listado, con su detalle desplegado](Reguistro%20visual/ISS-06/F-19-04-pedido-expandido.png)
 *Pedido nuevo en el listado, con su detalle desplegado*
 
-![`ng build` sin errores](Reguistro%20visual/F-19-05-ng-build.png)
+![`ng build` sin errores](Reguistro%20visual/ISS-06/F-19-05-ng-build.png)
 *`ng build` sin errores*
 
 ### F-20 · ISS-07 · Detalle de pedido y anulación (adaptado)
@@ -590,16 +596,16 @@ Se crea la pantalla `/pedidos/:id` con la cabecera del pedido (fecha, cliente, s
 
 Adaptaciones frente a la guía: en BrasaGo no hay endpoint de líneas separado, así que el detalle usa los `details` que ya trae el pedido. No hay stock, así que el panel de stock bajo no aplica (se reemplaza por pedidos de hoy, pagos pendientes y entregas en camino). La ruta `pedidos/:id` se marca como renderizado en cliente (`app.routes.server.ts`), porque depende de un parámetro que no se puede prerenderizar.
 
-![Detalle del pedido #7 con el botón Anular visible](Reguistro%20visual/F-20-01-detalle-con-anular.png)
+![Detalle del pedido #7 con el botón Anular visible](Reguistro%20visual/ISS-07/F-20-01-detalle-con-anular.png)
 *Detalle del pedido #7 con el botón Anular visible*
 
-![Mismo pedido después de anularlo: estado Cancelado, registro Inactivo y botón oculto](Reguistro%20visual/F-20-02-anulado.png)
+![Mismo pedido después de anularlo: estado Cancelado, registro Inactivo y botón oculto](Reguistro%20visual/ISS-07/F-20-02-anulado.png)
 *Mismo pedido después de anularlo: estado Cancelado, registro Inactivo y botón oculto*
 
-![Listado de pedidos con el pedido #7 en estado Cancelado](Reguistro%20visual/F-20-03-listado-cancelado.png)
+![Listado de pedidos con el pedido #7 en estado Cancelado](Reguistro%20visual/ISS-07/F-20-03-listado-cancelado.png)
 *Listado de pedidos con el pedido #7 en estado Cancelado*
 
-![`ng build` sin errores después del cambio de renderizado](Reguistro%20visual/F-20-04-ng-build.png)
+![`ng build` sin errores después del cambio de renderizado](Reguistro%20visual/ISS-07/F-20-04-ng-build.png)
 *`ng build` sin errores después del cambio de renderizado*
 
 ---
@@ -676,31 +682,31 @@ Verificación:
 - Usuario `sinpermisos`: el menú solo muestra Cuenta › Mi perfil, y entrar a /pedidos redirige a /forbidden con `GET /api/pedidos/`.
 - Usuario `elkin`: menú completo y botones visibles en Clientes, Productos y Pedidos.
 
-![F-25 Menú de sinpermisos: solo Cuenta › Mi perfil](Reguistro%20visual/F-25-01-menu-sinpermisos.png)
+![F-25 Menú de sinpermisos: solo Cuenta › Mi perfil](Reguistro%20visual/ISS-09/F-25-01-menu-sinpermisos.png)
 *Menú de `sinpermisos`: solo el grupo Cuenta con Mi perfil (Captura 18)*
 
-![F-25 Acceso denegado al entrar a /pedidos](Reguistro%20visual/F-25-02-forbidden-pedidos.png)
+![F-25 Acceso denegado al entrar a /pedidos](Reguistro%20visual/ISS-09/F-25-02-forbidden-pedidos.png)
 *`sinpermisos` entra a /pedidos y ve la pantalla de acceso denegado con `GET /api/pedidos/`*
 
-![F-25 Menú completo de elkin](Reguistro%20visual/F-25-03-menu-elkin.png)
+![F-25 Menú completo de elkin](Reguistro%20visual/ISS-09/F-25-03-menu-elkin.png)
 *Menú completo del usuario `elkin` (Captura 20)*
 
-![F-25 Build y 22 pruebas tras el menú filtrado](Reguistro%20visual/F-25-04-build-menu.png)
+![F-25 Build y 22 pruebas tras el menú filtrado](Reguistro%20visual/ISS-09/F-25-04-build-menu.png)
 *`ng build` sin errores y pruebas en verde tras filtrar el menú*
 
-![F-25 Pruebas tras la directiva de permisos](Reguistro%20visual/F-25-05-ng-test-directiva.png)
+![F-25 Pruebas tras la directiva de permisos](Reguistro%20visual/ISS-09/F-25-05-ng-test-directiva.png)
 *`ng test` con 24 pruebas tras agregar `*appHasPermission`*
 
-![F-25 Botones de Clientes con elkin](Reguistro%20visual/F-25-06-clientes-elkin.png)
+![F-25 Botones de Clientes con elkin](Reguistro%20visual/ISS-09/F-25-06-clientes-elkin.png)
 *Clientes con `elkin`: Nuevo cliente, editar y eliminar visibles (Captura 21)*
 
-![F-25 Botones de Productos con elkin](Reguistro%20visual/F-25-07-productos-elkin.png)
+![F-25 Botones de Productos con elkin](Reguistro%20visual/ISS-09/F-25-07-productos-elkin.png)
 *Productos con `elkin`: Nuevo producto, editar y eliminar visibles*
 
-![F-25 Botón Nuevo pedido con elkin](Reguistro%20visual/F-25-08-pedidos-elkin.png)
+![F-25 Botón Nuevo pedido con elkin](Reguistro%20visual/ISS-09/F-25-08-pedidos-elkin.png)
 *Pedidos con `elkin`: botón Nuevo pedido visible (Captura 23)*
 
-![F-25 Pruebas finales de ISS-09: 29 OK](Reguistro%20visual/F-25-09-ng-test-29.png)
+![F-25 Pruebas finales de ISS-09: 29 OK](Reguistro%20visual/ISS-09/F-25-09-ng-test-29.png)
 *`ng test` con 29 pruebas en verde, incluidos los guards y el menú (Captura 24)*
 
 ### F-26 · Identidad visual de BrasaGo (adaptado)
@@ -717,14 +723,212 @@ Adaptación frente a la guía: la guía usa el tema de PrimeNG tal cual. Aquí s
 
 Evidencias:
 
-![F-26 Encabezado con el logo de BrasaGo y la línea naranja](Reguistro%20visual/F-26-01-encabezado-logo.png)
+![F-26 Encabezado con el logo de BrasaGo y la línea naranja](Reguistro%20visual/Transversal/F-26-01-encabezado-logo.png)
 *Encabezado con el logo y la línea naranja de marca*
 
-![F-26 Botones y menú con el naranja de marca](Reguistro%20visual/F-26-02-tema-naranja.png)
+![F-26 Botones y menú con el naranja de marca](Reguistro%20visual/Transversal/F-26-02-tema-naranja.png)
 *Botón principal y estado activo del menú con el naranja de la marca*
 
-![F-26 app.config.ts con el preset de marca](Reguistro%20visual/F-26-03-app-config-preset.png)
+![F-26 app.config.ts con el preset de marca](Reguistro%20visual/Transversal/F-26-03-app-config-preset.png)
 *`app.config.ts` con `definePreset` y la escala naranja*
+
+### F-27 · ISS-10 · Administración RBAC: usuarios, roles, recursos, asignaciones y permisos (adaptado)
+
+Qué se hizo:
+- Backend: endpoint `GET /api/users/<id>/permissions/` (`UserPermissionsAPIView`). Devuelve los permisos activos del usuario a través de sus roles, en formato `{method, path, role}`. Responde 404 si el usuario no existe.
+- Frontend: `CrudApi<T, P>` (`services/security/crud.ts`) con `getAll`, `getById`, `create` (POST), `update` (PATCH) y `remove` (DELETE, 204). Se extiende en `UserApi`, `RoleApi`, `ResourceApi`, `RoleUserApi` y `ResourceRoleApi`. `UserApi.permissions(id)` consume el endpoint nuevo.
+- Modelos en `models/security/`: `RecordStatus`, `UserI`/`UserPayload`, `UserPermission`, `RoleI`, `ResourceI`, `RoleUserI` y `ResourceRoleI`.
+- Pantallas (`components/admin/`), todas con tabla, alta y edición en diálogo, baja lógica con confirmación, botones protegidos con `*appHasPermission` y ruta protegida con `permissionGuard`:
+  - Usuarios (`/admin/usuarios`, `GET /api/users/`): búsqueda por usuario, correo o nombre. La contraseña es obligatoria al crear (mínimo 8) y no aparece al editar.
+  - Roles (`/admin/roles`, `GET /api/roles/`): nombre de 2 a 30 letras o guion bajo, que se guarda en mayúsculas.
+  - Recursos (`/admin/recursos`, `GET /api/resources/`): método entre los cinco verbos y ruta que empieza por `/api/`.
+  - Asignaciones de rol (`/admin/asignaciones`, `GET /api/role-users/`): usuario y rol con selectores filtrables. Usa `forkJoin` para cargar asignaciones, roles y usuarios, y muestra nombres en lugar de IDs.
+  - Permisos por rol (`/admin/permisos`, `GET /api/resource-roles/`): recurso (`MÉTODO ruta`) y rol con selectores filtrables.
+- Diálogo **Ver permisos** en Usuarios: el icono de escudo abre una tabla con una fila por permiso (método, ruta y rol). Para `elkin` (ADMIN) muestra 85 filas.
+- Menú lateral: grupo **Seguridad** entre Domicilios y Cuenta, con Usuarios, Roles, Recursos, Asignaciones y Permisos por rol. Cada opción declara su permiso.
+
+Adaptación frente a la guía: el RBAC ya existe en el backend, así que el frontend consume esos recursos en lugar de duplicar el modelo de permisos.
+
+Verificación:
+- `ng build` termina sin errores después de cada pantalla.
+- `ng test`: 19 archivos y 36 pruebas OK (captura F-27-48). Las pruebas nuevas de ISS-10 son `UserApi` (3), `ResourceRoleApi` (2) y `UserList` (2).
+- Usuario `elkin` entra por URL a `/admin/usuarios` y a cada pantalla de seguridad desde el menú.
+- Usuario `sinpermisos` entra a `/forbidden` con el permiso requerido, y el menú solo muestra Cuenta › Mi perfil.
+
+**Acceso y usuarios**
+
+![F-27 /admin/usuarios abierta por URL con los registros cargados](Reguistro%20visual/ISS-10/F-27-01_usuarios-url.png)
+*/admin/usuarios abierta por URL con los registros cargados*
+
+![F-27 Permisos de ADMIN desde `/api/auth/permissions/` (contraseña difuminada)](Reguistro%20visual/ISS-10/F-27-02_permisos-api.png)
+*Permisos de ADMIN desde `/api/auth/permissions/` (contraseña difuminada)*
+
+![F-27 Ruta `admin/usuarios` en `app.routes.ts`, verificada con `grep`](Reguistro%20visual/ISS-10/F-27-03_ruta-admin-usuarios.png)
+*Ruta `admin/usuarios` en `app.routes.ts`, verificada con `grep`*
+
+![F-27 `sinpermisos` en `/forbidden` con el permiso requerido `GET /api/pedidos/`](Reguistro%20visual/ISS-10/F-27-04_acceso-denegado.png)
+*`sinpermisos` en `/forbidden` con el permiso requerido `GET /api/pedidos/`*
+
+![F-27 Diálogo Nuevo usuario con el campo de contraseña (difuminado)](Reguistro%20visual/ISS-10/F-27-05_nuevo-usuario.png)
+*Diálogo Nuevo usuario con el campo de contraseña (difuminado)*
+
+![F-27 Diálogo Editar usuario sin campo de contraseña](Reguistro%20visual/ISS-10/F-27-06_editar-usuario.png)
+*Diálogo Editar usuario sin campo de contraseña*
+
+![F-27 Script que inserta la ruta `admin/usuarios` y build completo](Reguistro%20visual/ISS-10/F-27-07_insertar-ruta-build.png)
+*Script que inserta la ruta `admin/usuarios` y build completo*
+
+![F-27 Creación de `user-list.html`](Reguistro%20visual/ISS-10/F-27-08_user-list-html.png)
+*Creación de `user-list.html`*
+
+![F-27 Creación de `user-list.ts` (inicio)](Reguistro%20visual/ISS-10/F-27-09_user-list-ts.png)
+*Creación de `user-list.ts` (inicio)*
+
+![F-27 `user-list.ts`: guardar, baja y manejo de errores](Reguistro%20visual/ISS-10/F-27-10_user-list-ts-guardar.png)
+*`user-list.ts`: guardar, baja y manejo de errores*
+
+**Roles**
+
+![F-27 Código de `role-list.ts`: guardar, baja y errores](Reguistro%20visual/ISS-10/F-27-11_roles-codigo-ts.png)
+*Código de `role-list.ts`: guardar, baja y errores*
+
+![F-27 Código de `role-list.html`](Reguistro%20visual/ISS-10/F-27-12_roles-codigo-html.png)
+*Código de `role-list.html`*
+
+![F-27 Script que agrega la ruta `admin/roles` y build completo](Reguistro%20visual/ISS-10/F-27-13_ruta-roles-build.png)
+*Script que agrega la ruta `admin/roles` y build completo*
+
+![F-27 Pantalla de roles con 2 registros (ADMIN activo y mesero inactivo)](Reguistro%20visual/ISS-10/F-27-15_roles-lista.png)
+*Pantalla de roles con 2 registros (ADMIN activo y mesero inactivo)*
+
+![F-27 Diálogo Nuevo rol vacío](Reguistro%20visual/ISS-10/F-27-16_roles-nuevo.png)
+*Diálogo Nuevo rol vacío*
+
+![F-27 Validación del nombre: mínimo 2 letras, sin números](Reguistro%20visual/ISS-10/F-27-17_roles-validacion.png)
+*Validación del nombre: mínimo 2 letras, sin números*
+
+**Menú Seguridad**
+
+![F-27 Script que agrega el grupo Seguridad al menú](Reguistro%20visual/ISS-10/F-27-18_menu-seguridad-script.png)
+*Script que agrega el grupo Seguridad al menú*
+
+![F-27 Menú con el grupo Seguridad (Usuarios y Roles)](Reguistro%20visual/ISS-10/F-27-19_menu-seguridad-visible.png)
+*Menú con el grupo Seguridad (Usuarios y Roles)*
+
+**Recursos**
+
+![F-27 Código de `resource-list.ts`](Reguistro%20visual/ISS-10/F-27-20_recursos-codigo-ts.png)
+*Código de `resource-list.ts`*
+
+![F-27 Código de `resource-list.html`](Reguistro%20visual/ISS-10/F-27-21_recursos-codigo-html.png)
+*Código de `resource-list.html`*
+
+![F-27 Script de ruta y menú de Recursos, y build completo](Reguistro%20visual/ISS-10/F-27-22_ruta-recursos-build.png)
+*Script de ruta y menú de Recursos, y build completo*
+
+![F-27 Pantalla de recursos con 85 registros](Reguistro%20visual/ISS-10/F-27-23_recursos-lista.png)
+*Pantalla de recursos con 85 registros*
+
+![F-27 Diálogo Nuevo recurso con validación de ruta, que debe empezar por `/api/`](Reguistro%20visual/ISS-10/F-27-24_recursos-validacion.png)
+*Diálogo Nuevo recurso con validación de ruta, que debe empezar por `/api/`*
+
+![F-27 Diálogo Editar recurso](Reguistro%20visual/ISS-10/F-27-25_recursos-editar.png)
+*Diálogo Editar recurso*
+
+**Asignaciones de rol**
+
+![F-27 Código de `role-user-list.ts` con `forkJoin`](Reguistro%20visual/ISS-10/F-27-26_asignaciones-codigo-ts.png)
+*Código de `role-user-list.ts` con `forkJoin`*
+
+![F-27 Código de `role-user-list.html`](Reguistro%20visual/ISS-10/F-27-27_asignaciones-codigo-html.png)
+*Código de `role-user-list.html`*
+
+![F-27 Script de ruta y menú de Asignaciones, y build completo](Reguistro%20visual/ISS-10/F-27-28_ruta-asignaciones-build.png)
+*Script de ruta y menú de Asignaciones, y build completo*
+
+![F-27 Pantalla de asignaciones: muestra nombre de usuario y de rol](Reguistro%20visual/ISS-10/F-27-29_asignaciones-lista.png)
+*Pantalla de asignaciones: muestra nombre de usuario y de rol*
+
+![F-27 Diálogo Nueva asignación con selectores filtrables](Reguistro%20visual/ISS-10/F-27-30_asignaciones-nueva.png)
+*Diálogo Nueva asignación con selectores filtrables*
+
+![F-27 Diálogo Editar asignación](Reguistro%20visual/ISS-10/F-27-31_asignaciones-editar.png)
+*Diálogo Editar asignación*
+
+**Permisos por rol**
+
+![F-27 Código de `resource-role-list.ts`](Reguistro%20visual/ISS-10/F-27-32_permisos-codigo-ts.png)
+*Código de `resource-role-list.ts`*
+
+![F-27 Código de `resource-role-list.html`](Reguistro%20visual/ISS-10/F-27-33_permisos-codigo-html.png)
+*Código de `resource-role-list.html`*
+
+![F-27 Script de ruta y menú de Permisos por rol, y build completo](Reguistro%20visual/ISS-10/F-27-34_ruta-permisos-build.png)
+*Script de ruta y menú de Permisos por rol, y build completo*
+
+![F-27 Pantalla de permisos por rol con 85 registros](Reguistro%20visual/ISS-10/F-27-35_permisos-lista.png)
+*Pantalla de permisos por rol con 85 registros*
+
+![F-27 Diálogo Nuevo permiso](Reguistro%20visual/ISS-10/F-27-36_permisos-nuevo.png)
+*Diálogo Nuevo permiso*
+
+![F-27 Diálogo Editar permiso](Reguistro%20visual/ISS-10/F-27-37_permisos-editar.png)
+*Diálogo Editar permiso*
+
+**Ver permisos de un usuario**
+
+![F-27 Código de `user-list.ts` con `openPermissions`](Reguistro%20visual/ISS-10/F-27-38_ver-permisos-codigo-ts.png)
+*Código de `user-list.ts` con `openPermissions`*
+
+![F-27 Código de `user-list.html` con el diálogo de permisos](Reguistro%20visual/ISS-10/F-27-39_ver-permisos-codigo-html.png)
+*Código de `user-list.html` con el diálogo de permisos*
+
+![F-27 Script que agrega `Tooltip` y build completo](Reguistro%20visual/ISS-10/F-27-40_tooltip-build.png)
+*Script que agrega `Tooltip` y build completo*
+
+![F-27 Usuarios con el botón Ver permisos (3 registros)](Reguistro%20visual/ISS-10/F-27-41_usuarios-botones-permisos.png)
+*Usuarios con el botón Ver permisos (3 registros)*
+
+![F-27 Diálogo Permisos de elkin: una fila por permiso, con paginación](Reguistro%20visual/ISS-10/F-27-42_ver-permisos-elkin.png)
+*Diálogo Permisos de elkin: una fila por permiso, con paginación*
+
+**Pruebas**
+
+![F-27 `ng test`: 16 archivos y 29 pruebas OK](Reguistro%20visual/ISS-10/F-27-43_ng-test-29.png)
+*`ng test`: 16 archivos y 29 pruebas OK*
+
+**Corrección: rutas de administración en el servidor**
+
+![F-27 `app.routes.server.ts` con `admin/**` en `RenderMode.Client`](Reguistro%20visual/ISS-10/F-27-14_routes-server-admin.png)
+*`app.routes.server.ts` con `admin/**` en `RenderMode.Client`*
+
+**Pruebas de ISS-10**
+
+![F-27 Código de user-api.spec.ts (versión inicial)](Reguistro%20visual/ISS-10/F-27-44_user-api-spec-codigo.png)
+*Código de `user-api.spec.ts`. En esta versión la prueba usaba `toBeFalse()`, que Vitest no tiene; luego se cambió a `toBe(false)`*
+
+![F-27 user-api.spec.ts: error de toBeFalse y corrección](Reguistro%20visual/ISS-10/F-27-45_user-api-spec-ok.png)
+*Error `toBeFalse` al compilar, corrección con `sed` y 3 pruebas OK*
+
+![F-27 resource-role-api.spec.ts con 2 pruebas OK](Reguistro%20visual/ISS-10/F-27-46_resource-role-api-spec.png)
+*`resource-role-api.spec.ts`: el POST envía números y estado; 2 pruebas OK*
+
+![F-27 user-list.spec.ts con 2 pruebas OK](Reguistro%20visual/ISS-10/F-27-47_user-list-spec.png)
+*`user-list.spec.ts`: carga de usuarios y diálogo de permisos con una fila por permiso; 2 pruebas OK*
+
+![F-27 ng test completo: 19 archivos y 36 pruebas OK](Reguistro%20visual/ISS-10/F-27-48_ng-test-36.png)
+*`ng test`: 19 archivos y 36 pruebas OK, y `ng build` sin errores*
+
+**Modelo RBAC (EVI-10-04)**
+
+![F-27 Diagrama User, RoleUser, Role, ResourceRole y Resource](Reguistro%20visual/ISS-10/F-27-49_diagrama-rbac.png)
+*Relación entre tablas: un permiso efectivo exige que RoleUser, Role, ResourceRole y Resource estén ACTIVE*
+
+Incidentes de este paso (ver sección 8): la redirección de `/admin/*` al dashboard, el 403 en permisos por usuario, el token vencido y la ruta de administración que se renderizaba en el servidor sin sesión.
+
+ISS-10 queda completo: pantallas, menú, pruebas y diagrama de la relación entre tablas (EVI-10-04).
+
+---
 
 ## 7. Pruebas
 
@@ -739,8 +943,11 @@ Comando: `npx ng test --no-watch`.
 | `core/guards/rbac.guards.spec.ts` (3) | Guard de permisos concede o redirige a `/forbidden`, y `authGuard` redirige a `/login` |
 | `components/layout/aside/aside-filter.spec.ts` (2) | El menú oculta opciones y grupos sin permiso |
 | `shared/directives/has-permission.spec.ts` (2) | La directiva `*appHasPermission` muestra u oculta el elemento |
+| `services/security/user-api.spec.ts` (3) | Lectura sin contraseña, PATCH sin contraseña y `GET /users/{id}/permissions/` |
+| `services/security/resource-role-api.spec.ts` (2) | El POST envía `role`, `resource` y `status` como números; el GET lista asignaciones |
+| `components/admin/users/user-list/user-list.spec.ts` (2) | Carga de usuarios y diálogo de permisos con una fila por permiso |
 
-Resultado: **16 archivos y 29 pruebas OK** (ver F-25). El ejecutor de pruebas es el que trae Angular 22 por defecto.
+Resultado: **19 archivos y 36 pruebas OK** (16 archivos y 29 pruebas en F-25; 3 archivos y 7 pruebas de ISS-10 en F-27). El ejecutor de pruebas es el que trae Angular 22 por defecto.
 
 ---
 
@@ -756,25 +963,30 @@ Resultado: **16 archivos y 29 pruebas OK** (ver F-25). El ejecutor de pruebas es
 | Encabezados cambiados ("IDENTIFICACIÓN", "Colina baja") y contador en 0 | El traductor de Chrome reescribía el DOM y Angular actualizaba nodos que ya no estaban | `lang="es"`, `translate="no"` y `<meta name="google" content="notranslate">` |
 | `No pipe found with name 'currency'` (NG8004) | Se usó `CurrencyPipe` en el HTML de productos sin importarlo en el componente | Agregar `CurrencyPipe` a `imports` y al `import` del archivo |
 | `dev-credentials.example.ts` sin el cierre `};` | El `sed` dejó el archivo incompleto, y rompería el build | Reescribirlo completo |
+| `/admin/usuarios` redirigía a `/dashboard` | `ng serve` seguía sirviendo un bundle sin la ruta nueva | Reiniciar `npm start` y recargar con Ctrl+Shift+R |
+| `GET /api/users/<id>/permissions/` respondía 403 | El recurso nuevo no estaba asignado al rol ADMIN | `python manage.py grant_all_access <usuario>` |
+| `KeyError: 'permissions'` al consultar permisos con `curl` | El token de acceso había vencido y la respuesta era un error | Iniciar sesión de nuevo para obtener un token válido |
+| Las rutas de administración se redirigían a `/dashboard` al escribir la URL | Angular renderiza la ruta en el servidor (SSR), donde no hay sesión: `permissionGuard` mandaba a `/login` y `guestGuard` al dashboard | `RenderMode.Client` para `admin/**` en `app.routes.server.ts` |
+| `toBeFalse` no existe en las pruebas de Angular 22 (Vitest) | Se escribió con la sintaxis de Jasmine | `toBe(false)` |
 
 ### Evidencias de los errores
 
-![`npm start` falla: `app.css` contenía TypeScript](Reguistro%20visual/P-01-error-css.png)
+![`npm start` falla: `app.css` contenía TypeScript](Reguistro%20visual/Errores/P-01-error-css.png)
 *`npm start` falla: `app.css` contenía TypeScript*
 
-![Módulos no encontrados: servicio y utilidades en carpetas equivocadas](Reguistro%20visual/P-02-error-modulos.png)
+![Módulos no encontrados: servicio y utilidades en carpetas equivocadas](Reguistro%20visual/Errores/P-02-error-modulos.png)
 *Módulos no encontrados: servicio y utilidades en carpetas equivocadas*
 
-![`p-sortIcon` no es un elemento conocido en PrimeNG 22](Reguistro%20visual/P-03-error-sort-icon.png)
+![`p-sortIcon` no es un elemento conocido en PrimeNG 22](Reguistro%20visual/Errores/P-03-error-sort-icon.png)
 *`p-sortIcon` no es un elemento conocido en PrimeNG 22*
 
-![`No matching export ... ClientService` y su corrección](Reguistro%20visual/P-04-error-client-service.png)
+![`No matching export ... ClientService` y su corrección](Reguistro%20visual/Errores/P-04-error-client-service.png)
 *`No matching export ... ClientService` y su corrección*
 
-![Traductor de Chrome alterando la tabla: encabezados traducidos y contador en 0](Reguistro%20visual/P-06-traductor.png)
+![Traductor de Chrome alterando la tabla: encabezados traducidos y contador en 0](Reguistro%20visual/Errores/P-06-traductor.png)
 *Traductor de Chrome alterando la tabla: "IDENTIFICACIÓN", "Colina baja" y contador en 0*
 
-![Corrección del traductor: `lang="es"`, `translate="no"` y `notranslate`](Reguistro%20visual/P-05-fix-traductor.png)
+![Corrección del traductor: `lang="es"`, `translate="no"` y `notranslate`](Reguistro%20visual/Errores/P-05-fix-traductor.png)
 *Corrección del traductor: `lang="es"`, `translate="no"` y `notranslate`*
 
 ---
@@ -801,7 +1013,6 @@ El login ahora es real: en `/login` se escribe el usuario y la contraseña del b
 
 ## 10. Pendiente
 
-- Pantallas de administración (ISS-10): usuarios, roles, recursos y permisos por usuario.
 - Build de producción, presupuestos, accesibilidad y checklist final (ISS-11).
 - Commit y push del trabajo a `motores` cuando termine ISS-11.
 - Pantalla de permisos de la guía: resuelta en F-25. El backend sí tiene RBAC; se expuso `GET /api/auth/permissions/` y el frontend filtra menú, botones y rutas con esos permisos.
