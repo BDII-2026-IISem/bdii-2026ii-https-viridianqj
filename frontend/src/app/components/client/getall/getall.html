@@ -73,6 +73,16 @@
             [disabled]="row.status !== 'ACTIVE'"
             (onClick)="remove(row)"
           />
+            @if (row.status === 'INACTIVE') {
+            <p-button
+              icon="pi pi-replay"
+              *appHasPermission="'PATCH /api/clientes/:id/'"
+              [text]="true"
+              [rounded]="true"
+              severity="success"
+              (onClick)="reactivate(row)"
+            />
+          }
         </td>
       </tr>
     </ng-template>

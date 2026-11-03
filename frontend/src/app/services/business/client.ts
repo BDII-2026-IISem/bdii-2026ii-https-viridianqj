@@ -11,6 +11,7 @@ export interface ClientPayload {
   name: string;
   phone: string | null;
   email: string | null;
+  status?: 'ACTIVE' | 'INACTIVE';
 }
 
 @Injectable({ providedIn: 'root' })

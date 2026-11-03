@@ -10,7 +10,7 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | **Guía de referencia** | [Angular 20 · APIs con Django](https://tecnogua.com/academic/site/frontend/angular20/apis_django/), con la instalación y el cliente Django del mismo sitio |
 | **Backend consumido** | API REST de BrasaGo (Django 5.2 + DRF), `http://127.0.0.1:8000/api` |
 | **Pruebas** | 36 pruebas OK en 19 archivos (`ng test`), ver sección 7 |
-| **Fecha de cierre** | 31 de octubre de 2026 |
+| **Última actualización** | 3 de noviembre de 2026 (ISS-11 en curso) |
 
 ---
 
@@ -48,6 +48,8 @@ ISS = issue de la guía frontend2026. Extra BrasaGo = pantalla propia del domini
 | F-25 · ISS-08 a ISS-09 | Permisos por recurso, guards y menú filtrado | Bien |
 | F-26 · Transversal | Identidad visual de BrasaGo (tema naranja, logo y capas CSS) | Bien |
 | F-27 · ISS-10 | Administración RBAC: usuarios, roles, recursos, asignaciones, permisos por rol, ver permisos y menú Seguridad | Bien |
+| F-28 · ISS-11 | Build de producción, presupuestos, calidad, responsive, accesibilidad y recorrido de verificación (pasos 1 a 3 y 11 a 13) | Parcial |
+| F-29 · ISS-03 | Reactivar clientes desde la pantalla (corrección encontrada en ISS-11) | Bien |
 
 ---
 
@@ -930,9 +932,150 @@ ISS-10 queda completo: pantallas, menú, pruebas y diagrama de la relación entr
 
 ---
 
+### F-28 · ISS-11 · Build de producción, calidad y recorrido de verificación (parcial)
+
+Se revisó la fase de cierre del frontend con la guía de ISS-11. Al cierre de esta entrada cumplen: el build de producción, los tipos, las pruebas, la revisión responsive y la accesibilidad básica del menú. El recorrido de 17 pasos está en curso: cumplen los pasos 1 a 3 y 12 y 13; el 11 tiene evidencia parcial.
+
+**Entornos.** `environment.ts` quedó con `production: true`, `appName` y `apiUrl: 'http://localhost:8000/api'`, igual que `environment.development.ts` (`production: false`). Antes, el archivo de producción usaba `127.0.0.1` y no tenía la bandera `production`.
+
+![Grep de entornos, reescritura de `environment.ts` y build inicial](Reguistro%20visual/ISS-11/F-28-01_entornos-y-build-inicial.png)
+*Entornos alineados: mismo `apiUrl` y `production` en cada archivo*
+
+**Presupuesto de bundle.** El primer `ng build` terminó con código 0, pero con aviso: el bundle inicial pesó 805.59 kB (542.15 kB `main`, 235.93 kB un chunk compartido y 27.51 kB de estilos) contra el aviso de 750 kB. Las rutas ya usaban `loadComponent` y ninguna pantalla entra de forma estática. El peso viene del arranque: PrimeNG (`api`, `toast`, `panelmenu`, `drawer`, `config`) y el tema `@primeuix/themes/aura`, que se usan en todas las pantallas. Se decidió subir el aviso inicial a 850 kB y dejar el error en 1 MB, y documentar el costo aceptado. El presupuesto `anyComponentStyle` (4 kB / 8 kB) ya estaba configurado.
+
+![Build con aviso de presupuesto: 805.59 kB contra 750 kB](Reguistro%20visual/ISS-11/F-28-02_build-aviso-presupuesto.png)
+*Primer build: aviso de presupuesto excedido*
+
+![Rutas del proyecto con `loadComponent`](Reguistro%20visual/ISS-11/F-28-03_rutas-loadcomponent.png)
+*Todas las pantallas se cargan de forma diferida*
+
+![Tabla de chunks iniciales y limpieza de marcadores `Zone.Identifier`](Reguistro%20visual/ISS-11/F-28-04_zone-identifier-y-tabla-inicial.png)
+*Tabla de chunks iniciales; se eliminaron los marcadores `*Zone.Identifier` que había en `src/`*
+
+![Imports estáticos del arranque](Reguistro%20visual/ISS-11/F-28-05_imports-arranque.png)
+*Imports del arranque: PrimeNG y el tema Aura*
+
+![Aviso de presupuesto ajustado a 850 kB y build sin advertencias](Reguistro%20visual/ISS-11/F-28-06_presupuesto-850-build.png)
+*Presupuesto a 850 kB y error a 1 MB: build sin advertencias*
+
+**Tipos y pruebas.** `npx tsc -p tsconfig.app.json --noEmit` terminó sin salida y con código 0. `npm test -- --watch=false` pasó con 36 pruebas en 19 archivos. Estos números reemplazan a los 49 pruebas en 26 archivos que indica la guía, que no corresponden a este proyecto.
+
+![tsc con código 0 y arranque de las pruebas](Reguistro%20visual/ISS-11/F-28-07_tsc-y-pruebas-inicio.png)
+*`tsc` con código 0 y pruebas en curso*
+
+![Resultado de las pruebas: 19 archivos y 36 pruebas OK](Reguistro%20visual/ISS-11/F-28-08_pruebas-36-en-19.png)
+*19 archivos y 36 pruebas OK*
+
+**Responsive y accesibilidad.** A 400 px el menú se abre como Drawer con los grupos Negocio, Salón, Cocina, Domicilios y Seguridad. `document.documentElement.scrollWidth <= clientWidth` devuelve `true`, así que no hay desplazamiento horizontal. Ningún botón de solo icono queda sin nombre accesible (resultado `0`). Con el Drawer abierto, `Tab` llega a la X y `Esc` lo cierra, y el foco vuelve al botón del menú. Pendiente: repetir `Tab` y `Esc` dentro de un `p-dialog` para cerrar AC-11-05.
+
+![Drawer del menú a 400 px con los grupos de Seguridad](Reguistro%20visual/ISS-11/F-28-09_responsive-400-menu.png)
+*Menú a 400 px: Drawer con todos los grupos*
+
+![Consola: ningún botón sin nombre accesible](Reguistro%20visual/ISS-11/F-28-10_botones-sin-nombre.png)
+*Botones sin nombre accesible: 0*
+
+![Consola: sin desplazamiento horizontal a 400 px](Reguistro%20visual/ISS-11/F-28-11_sin-desplazamiento-horizontal.png)
+*Sin desplazamiento horizontal: `true`*
+
+**Recorrido de verificación (guía de 17 pasos).**
+
+- **Paso 1:** `/clientes` sin sesión redirige a `/login?returnUrl=%2Fclientes`.
+- **Paso 2:** el login con el usuario admin devuelve a `/clientes`, con el menú de Operación y Seguridad.
+- **Paso 3 (CRUD de clientes):** alta con `POST` 201, edición con `PATCH` 200, búsqueda en memoria (pendiente confirmar en Red que no hay petición al escribir), baja con `DELETE` 204 y reactivación con `PATCH` 200. En la baja se encontró un fallo: no existía forma de reactivar desde la pantalla. Se corrigió en F-29.
+- **Paso 11 (permisos del mesero, evidencia parcial):** se creó el permiso `GET api/clientes/` para el rol `mesero` (id 111), que es el permiso mínimo para ver clientes. Con sesión de `mesero`, `/pedidos` y `/admin/usuarios` muestran `/forbidden` con el permiso requerido (`GET /api/pedidos/` y `GET /api/users/`), y el menú solo muestra Negocio › Clientes y Cuenta › Mi perfil. Falta confirmar si el criterio del paso 11 pide redirección a otra ruta o si la pantalla `/forbidden` cumple.
+- **Paso 12 (vendedor sin escritura):** `mesero` entra a `/clientes`, ve el listado sin el botón "Nuevo cliente" y sin acciones de edición, baja ni reactivación. Como no existe un usuario con rol vendedor, se usa `mesero`.
+- **Paso 13 (403 en escritura):** con el token de `mesero`, `POST /api/clientes/` responde 403. El token se obtuvo con `read -s`, así que la contraseña no quedó en el historial.
+- **Paso 14 (pendiente):** conceder `POST api/clientes/` al rol `mesero`.
+
+![Paso 1: redirección a login con returnUrl](Reguistro%20visual/ISS-11/F-28-12_paso1-login-returnurl.png)
+*Paso 1: `/clientes` redirige a login con `returnUrl`*
+
+![Paso 3: diálogo de nuevo cliente](Reguistro%20visual/ISS-11/F-28-13_paso3-nuevo-cliente.png)
+*Paso 3, alta: diálogo de nuevo cliente con los datos de prueba*
+
+![Backend: POST /api/clientes/ responde 201](Reguistro%20visual/ISS-11/F-28-14_backend-post-201.png)
+*Alta: `POST /api/clientes/` responde 201*
+
+![Listado de clientes con el cliente nuevo](Reguistro%20visual/ISS-11/F-28-15_paso3-lista.png)
+*Listado con 4 registros*
+
+![Diálogo de edición con el teléfono modificado](Reguistro%20visual/ISS-11/F-28-16_paso3-editar.png)
+*Edición de teléfono*
+
+![Listado después de la edición](Reguistro%20visual/ISS-11/F-28-17_paso3-editado.png)
+*Listado tras la edición*
+
+![Backend: PATCH /api/clientes/4/ responde 200](Reguistro%20visual/ISS-11/F-28-18_backend-patch.png)
+*Edición: `PATCH /api/clientes/4/` responde 200*
+
+![Búsqueda "mich" en el listado](Reguistro%20visual/ISS-11/F-28-19_paso3-buscar.png)
+*Búsqueda local con "mich" (pendiente confirmar en Red que no hay petición nueva)*
+
+![Confirmación de baja](Reguistro%20visual/ISS-11/F-28-20_paso3-confirmar-baja.png)
+*Confirmación de baja*
+
+![Cliente dado de baja: estado Inactivo](Reguistro%20visual/ISS-11/F-28-21_paso3-baja-inactivo.png)
+*Baja: estado Inactivo*
+
+![Cabeceras de la baja: DELETE responde 204](Reguistro%20visual/ISS-11/F-28-22_paso3-baja-204.png)
+*Baja: `DELETE /api/clientes/4/` responde 204*
+
+![Nuevo permiso GET api/clientes/ para el rol mesero](Reguistro%20visual/ISS-11/F-28-23_paso11-nuevo-permiso-get-clientes.png)
+*Permiso `GET api/clientes/` para el rol `mesero`*
+
+![Permisos por rol con GET api/clientes/ de mesero (id 111)](Reguistro%20visual/ISS-11/F-28-24_paso11-permisos-lista-mesero.png)
+*Lista de permisos: `GET api/clientes/` asignado a `mesero`*
+
+![Mesero en /forbidden al entrar a /pedidos](Reguistro%20visual/ISS-11/F-28-25_paso11-pedidos-forbidden.png)
+*Mesero en `/forbidden`: permiso requerido `GET /api/pedidos/`*
+
+![Mesero en /forbidden al entrar a /admin/usuarios](Reguistro%20visual/ISS-11/F-28-26_paso11-usuarios-forbidden.png)
+*Mesero en `/forbidden`: permiso requerido `GET /api/users/`*
+
+![Mesero en /clientes sin botones de escritura](Reguistro%20visual/ISS-11/F-28-27_paso12-clientes-mesero.png)
+*Paso 12: listado de clientes sin "Nuevo cliente" ni acciones de edición o baja*
+
+![POST /api/clientes/ como mesero responde 403](Reguistro%20visual/ISS-11/F-28-28_paso13-post-403.png)
+*Paso 13: `POST /api/clientes/` con el token de `mesero` responde 403*
+
+**Evidencia adicional de ISS-10.** Validación del formulario "Nuevo usuario" con campos vacíos: los mensajes de error aparecen junto a cada campo.
+
+![Formulario Nuevo usuario con validaciones](Reguistro%20visual/ISS-10/F-27-50_nuevo-usuario-validacion.png)
+*Nuevo usuario con campos vacíos: mensajes de validación junto a cada campo*
+
+Pendientes de ISS-11: pasos 4 a 10 del recorrido (CRUD de tipos y productos, venta con dos líneas, detalle y panel, anulación, recarga de sesión y `/forbidden` manual), pasos 14 a 17 (concesión de `POST` a mesero, actualizar permisos, revocación de refresh y cierre de sesión), la prueba de `Tab` y `Esc` en un `p-dialog`, y la prueba de 403 con `API_ACCESS=rbac` en un proceso aparte en el puerto 8011.
+
+### F-29 · ISS-03 · Reactivar cliente desde la pantalla (corrección)
+
+Durante el paso 3 de ISS-11 se encontró que, después de dar de baja un cliente, la pantalla no ofrecía forma de reactivarlo. La causa: el botón de baja tenía `[disabled]="row.status !== 'ACTIVE'"` y no existía ninguna acción para clientes `INACTIVE`. La API sí reactiva con `PATCH`.
+
+Corrección:
+
+- `ClientPayload` (`services/business/client.ts`) gana `status?: 'ACTIVE' | 'INACTIVE'`. Es opcional, así que crear y editar no cambian.
+- `getall.ts`: método `reactivate(client)` que llama `service.update(id, { status: 'ACTIVE' })` y recarga la lista.
+- `getall.html`: botón verde (`pi pi-replay`) visible solo cuando `row.status === 'INACTIVE'`, protegido con `*appHasPermission="'PATCH /api/clientes/:id/'"`.
+
+Verificación: `tsc` con código 0; en el navegador, el cliente dado de baja (`DELETE` 204) muestra el botón de reactivar, al pulsarlo responde `PATCH /api/clientes/4/` con 200 y la fila vuelve a Activo.
+
+Aclaración sobre la ruta: durante la revisión se sospechó que las claves de permiso estaban mal (`/api/clientes/`). Se comprobó en `backend/apps/client/urls.py` que el backend registra `clientes`, así que las claves del frontend eran correctas. La guía usa `/api/clients/` y estado en minúsculas; este proyecto usa `/api/clientes/` y `ACTIVE`/`INACTIVE`.
+
+![Servicio `ClientService` con `status` opcional en `ClientPayload`](Reguistro%20visual/ISS-03/F-16-06_servicio-payload-status.png)
+*`ClientPayload` con `status?` opcional*
+
+![Método `reactivate` en `getall.ts`](Reguistro%20visual/ISS-03/F-16-07_reactivar-codigo-ts.png)
+*Método `reactivate` en el componente*
+
+![Botón de reactivar con `@if` para clientes inactivos](Reguistro%20visual/ISS-03/F-16-08_reactivar-codigo-html.png)
+*Botón de reactivar visible solo en clientes inactivos*
+
+![Cliente reactivado: fila en Activo y PATCH 200](Reguistro%20visual/ISS-03/F-16-09_reactivar-ok.png)
+*Cliente reactivado: `PATCH` 200 y estado Activo*
+
+---
+
 ## 7. Pruebas
 
-Comando: `npx ng test --no-watch`.
+Comando: `npm test -- --watch=false`. Última corrida (2 de noviembre de 2026): 19 archivos y 36 pruebas OK (captura F-28-08).
 
 | Archivo de pruebas | Qué verifica |
 |---|---|
@@ -968,6 +1111,11 @@ Resultado: **19 archivos y 36 pruebas OK** (16 archivos y 29 pruebas en F-25; 3 
 | `KeyError: 'permissions'` al consultar permisos con `curl` | El token de acceso había vencido y la respuesta era un error | Iniciar sesión de nuevo para obtener un token válido |
 | Las rutas de administración se redirigían a `/dashboard` al escribir la URL | Angular renderiza la ruta en el servidor (SSR), donde no hay sesión: `permissionGuard` mandaba a `/login` y `guestGuard` al dashboard | `RenderMode.Client` para `admin/**` en `app.routes.server.ts` |
 | `toBeFalse` no existe en las pruebas de Angular 22 (Vitest) | Se escribió con la sintaxis de Jasmine | `toBe(false)` |
+| El build inicial superó el presupuesto de 750 kB (805.59 kB) | PrimeNG y el tema Aura se cargan en el arranque | Aviso a 850 kB y error en 1 MB, documentado en F-28 |
+| Marcadores `*Zone.Identifier` dentro de `src/` y en `dist/` | Archivos de Windows que se copian al descargar | `find src -name "*Zone.Identifier" -delete` |
+| `environment.ts` de producción sin `production` y con otro `apiUrl` | Archivo incompleto y distinto del de desarrollo | Reescribirlo con `production: true` y el mismo `apiUrl` |
+| No se podía reactivar un cliente desde la pantalla | El botón de baja se deshabilitaba y no había acción para `INACTIVE` | Botón de reactivar y `status?` en `ClientPayload` (F-29) |
+| Se supuso la ruta `/api/clients/` y el estado en minúsculas | Se tomaron de la guía sin verificarlos en el backend | Se comprobó en `urls.py`: `clientes` y `ACTIVE`/`INACTIVE` |
 
 ### Evidencias de los errores
 
@@ -1013,7 +1161,8 @@ El login ahora es real: en `/login` se escribe el usuario y la contraseña del b
 
 ## 10. Pendiente
 
-- Build de producción, presupuestos, accesibilidad y checklist final (ISS-11).
+- ISS-11: recorrido de pasos 4 a 10 y 14 a 17, prueba de `Tab` y `Esc` en un `p-dialog` (AC-11-05), prueba de 403 con `API_ACCESS=rbac` en el puerto 8011, y los casos de la tabla de resolución de problemas, incluido el 409 (AC-11-06 y AC-11-07).
+- Antes de publicar la bitácora: difuminar las contraseñas visibles en F-27-02 y F-27-05, y retirar las contraseñas de los documentos de instalación de base de datos que están en el repositorio.
 - Commit y push del trabajo a `motores` cuando termine ISS-11.
 - Pantalla de permisos de la guía: resuelta en F-25. El backend sí tiene RBAC; se expuso `GET /api/auth/permissions/` y el frontend filtra menú, botones y rutas con esos permisos.
 - Pantallas de sedes y mesas, cuando el backend exponga sus endpoints.

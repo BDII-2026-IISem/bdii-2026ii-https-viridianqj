@@ -145,6 +145,13 @@ export class Getall implements OnInit {
       error: () => this.error.set('No se pudo dar de baja el cliente.'),
     });
   }
+  
+    reactivate(client: ClientI): void {
+    this.service.update(client.id, { status: 'ACTIVE' }).subscribe({
+      next: () => this.load(),
+      error: () => this.error.set('No se pudo reactivar el cliente.'),
+    });
+  } 
 
   private describe(err: HttpErrorResponse): string {
     const body = err.error;
