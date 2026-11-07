@@ -10,7 +10,7 @@ Registro del avance del frontend de **BrasaGo** (sistema omnicanal de restaurant
 | **Guía de referencia** | [Angular 20 · APIs con Django](https://tecnogua.com/academic/site/frontend/angular20/apis_django/), con la instalación y el cliente Django del mismo sitio |
 | **Backend consumido** | API REST de BrasaGo (Django 5.2 + DRF), `http://127.0.0.1:8000/api` |
 | **Pruebas** | 36 pruebas OK en 19 archivos (`ng test`), ver sección 7 |
-| **Última actualización** | 3 de noviembre de 2026 (ISS-11 en curso) |
+| **Última actualización** | 7 de noviembre de 2026 (ISS-11 en curso) |
 
 ---
 
@@ -50,6 +50,7 @@ ISS = issue de la guía frontend2026. Extra BrasaGo = pantalla propia del domini
 | F-27 · ISS-10 | Administración RBAC: usuarios, roles, recursos, asignaciones, permisos por rol, ver permisos y menú Seguridad | Bien |
 | F-28 · ISS-11 | Build de producción, presupuestos, calidad, responsive, accesibilidad y recorrido de verificación (pasos 1 a 3 y 11 a 13) | Parcial |
 | F-29 · ISS-03 | Reactivar clientes desde la pantalla (corrección encontrada en ISS-11) | Bien |
+| F-30 · ISS-11 | Roles y permisos en una sola pantalla, menú de Seguridad, botón de menú oculto en login y verificación del rol mesero | Parcial |
 
 ---
 
@@ -1073,6 +1074,47 @@ Aclaración sobre la ruta: durante la revisión se sospechó que las claves de p
 
 ---
 
+### F-30 · ISS-11 · Roles y permisos en una sola pantalla y menú de login
+
+El diseño pedía que los antiguos Roles, Asignaciones y Permisos por rol quedaran en una sola vista, con la lista de roles a la izquierda y, a la derecha, el nombre, el estado, los usuarios asignados y la matriz de permisos por entidad (C, R, U, D). Se unificó en `/admin/roles-permisos`, y las rutas anteriores redirigen a ella.
+
+Cambios (sin commit). Se había creado un commit local `bf61f4a` por error; se deshizo con `git reset --mixed HEAD~1`. Los cambios quedan sin confirmar en el clon y no hubo push.
+
+- `app.routes.ts`: nueva ruta `admin/roles-permisos` con `permissionGuard` y `GET /api/roles/`. `admin/roles`, `admin/asignaciones` y `admin/permisos` redirigen a ella (`Reguistro visual/ISS-11/F-30-05_app-routes-roles-permisos.png`).
+- `components/layout/aside/aside.ts`: en Seguridad queda una sola opción, «Roles y permisos» (`Reguistro visual/ISS-11/F-30-06_aside-seguridad.png`, `Reguistro visual/ISS-11/F-30-12_aside-enlaces.png`).
+- `components/admin/rbac/rbac-matrix.ts` (nuevo): funciones puras que usa la pantalla. `entityOf` toma el primer segmento tras `api/`. `buildEntityRows` agrupa solo recursos `ACTIVE`. `cellState` devuelve `none`, `off`, `some` o `all`. `applyCell` y `diffSets` calculan los cambios. `indexByRole` conserva las filas inactivas para poder reactivarlas, y `activeTargets` cuenta solo las activas (`Reguistro visual/ISS-11/F-30-07_rbac-matrix-ts.png`, `Reguistro visual/ISS-11/F-30-13_rbac-matrix-ts-revision.png`).
+- `components/admin/rbac/rbac-matrix.spec.ts` (nuevo): 10 pruebas de esas funciones.
+- `components/admin/rbac/roles-permissions/roles-permissions.ts`, `.html` y `.css` (nuevos): la pantalla. Lista de roles con `p-multiselect` para usuarios, `p-select` para estado y tabla con casillas por entidad y acción. El modo de creación se activa con `creating()` (`Reguistro visual/ISS-11/F-30-09_roles-permissions-ts.png`, `Reguistro visual/ISS-11/F-30-10_roles-permissions-html.png`, `Reguistro visual/ISS-11/F-30-11_roles-permissions-css.png`).
+
+Cómo guarda la pantalla: compara el borrador con el estado del servidor y envía solo las diferencias. Si la fila ya existe como `INACTIVE`, hace `PATCH` a `ACTIVE` en lugar de `POST`, para no violar la unicidad de `(role, user)` y `(resource, role)`. El botón de guardar se activa solo cuando hay cambios (`dirty`).
+
+Login sin hamburguesa: `header.ts` inyecta `SessionStore`, y `header.html` envuelve el botón de menú en `@if (sessionStore.isAuthenticated())`. Con sesión el botón sigue visible (`Reguistro visual/ISS-11/F-30-01_header-ts.png`, `Reguistro visual/ISS-11/F-30-02_header-html.png`, `Reguistro visual/ISS-11/F-30-03_login-sin-hamburguesa.png`, `Reguistro visual/ISS-11/F-30-04_panel-con-menu.png`).
+
+Verificación:
+
+- `npm test`: 19 archivos y 36 pruebas OK (`Reguistro visual/ISS-11/F-30-08_ng-test-36.png`). Esa captura es anterior al spec nuevo. La ejecución con `rbac-matrix.spec.ts` (10 pruebas más) no quedó capturada en este paquete.
+- Rol mesero: la pantalla con ADMIN y MESERO (`Reguistro visual/ISS-11/F-30-14_roles-permisos-admin-mesero.png`) muestra que Leer de Clientes aparece en «parcial» (`Reguistro visual/ISS-11/F-30-15_mesero-leer-parcial.png`). Es el estado real del rol: solo tiene `GET` del listado de clientes, sin detalle. El perfil del mesero (`Reguistro visual/ISS-11/F-30-16_perfil-mesero.png`), el rol con 0 permisos (`Reguistro visual/ISS-11/F-30-17_rol-mesero-sin-permisos.png`) y la lista de roles (`Reguistro visual/ISS-11/F-30-18_lista-roles-con-mesero.png`) muestran el resultado. El usuario confirmó que el comportamiento era el esperado.
+
+![Ruta `admin/roles-permisos` y redirecciones en `app.routes.ts`](Reguistro%20visual/ISS-11/F-30-05_app-routes-roles-permisos.png)
+*Una sola ruta y tres redirecciones*
+
+![`aside.ts` con una sola opción en Seguridad](Reguistro%20visual/ISS-11/F-30-06_aside-seguridad.png)
+*Menú de Seguridad con «Roles y permisos»*
+
+![`roles-permissions.ts` con imports y estado](Reguistro%20visual/ISS-11/F-30-09_roles-permissions-ts.png)
+*Componente de la pantalla unificada*
+
+![Pantalla Roles y permisos con ADMIN y MESERO](Reguistro%20visual/ISS-11/F-30-14_roles-permisos-admin-mesero.png)
+*Matriz por entidad con C, R, U y D*
+
+![Rol MESERO: Leer de Clientes en parcial](Reguistro%20visual/ISS-11/F-30-15_mesero-leer-parcial.png)
+*Lectura parcial de clientes para el mesero*
+
+![Lista de roles con MESERO](Reguistro%20visual/ISS-11/F-30-18_lista-roles-con-mesero.png)
+*Lista de roles con usuarios asignados*
+
+---
+
 ## 7. Pruebas
 
 Comando: `npm test -- --watch=false`. Última corrida (2 de noviembre de 2026): 19 archivos y 36 pruebas OK (captura F-28-08).
@@ -1115,6 +1157,7 @@ Resultado: **19 archivos y 36 pruebas OK** (16 archivos y 29 pruebas en F-25; 3 
 | Marcadores `*Zone.Identifier` dentro de `src/` y en `dist/` | Archivos de Windows que se copian al descargar | `find src -name "*Zone.Identifier" -delete` |
 | `environment.ts` de producción sin `production` y con otro `apiUrl` | Archivo incompleto y distinto del de desarrollo | Reescribirlo con `production: true` y el mismo `apiUrl` |
 | No se podía reactivar un cliente desde la pantalla | El botón de baja se deshabilitaba y no había acción para `INACTIVE` | Botón de reactivar y `status?` en `ClientPayload` (F-29) |
+| Se creó un commit local sin orden | Commit `bf61f4a` hecho por error durante ISS-11 | Deshecho con `git reset --mixed HEAD~1`; cambios sin confirmar y sin push (F-30) |
 | Se supuso la ruta `/api/clients/` y el estado en minúsculas | Se tomaron de la guía sin verificarlos en el backend | Se comprobó en `urls.py`: `clientes` y `ACTIVE`/`INACTIVE` |
 
 ### Evidencias de los errores
@@ -1163,6 +1206,8 @@ El login ahora es real: en `/login` se escribe el usuario y la contraseña del b
 
 - ISS-11: recorrido de pasos 4 a 10 y 14 a 17, prueba de `Tab` y `Esc` en un `p-dialog` (AC-11-05), prueba de 403 con `API_ACCESS=rbac` en el puerto 8011, y los casos de la tabla de resolución de problemas, incluido el 409 (AC-11-06 y AC-11-07).
 - Antes de publicar la bitácora: difuminar las contraseñas visibles en F-27-02 y F-27-05, y retirar las contraseñas de los documentos de instalación de base de datos que están en el repositorio.
-- Commit y push del trabajo a `motores` cuando termine ISS-11.
+- Decidir qué desplegable del menú aparece al iniciar sesión (los grupos con `expanded: true` en `aside.ts` o el cajón `mobileOpen`) y aplicar el ajuste.
+- Verificar en navegador el guardado y la carga de Roles y permisos; las capturas de F-30 muestran la pantalla, no el flujo de guardar.
+- Commit y push del trabajo a `motores` cuando termine ISS-11, solo con orden explícita del autor.
 - Pantalla de permisos de la guía: resuelta en F-25. El backend sí tiene RBAC; se expuso `GET /api/auth/permissions/` y el frontend filtra menú, botones y rutas con esos permisos.
 - Pantallas de sedes y mesas, cuando el backend exponga sus endpoints.
