@@ -56,10 +56,8 @@ export const MENU_ITEMS: NavItem[] = [
     expanded: true,
     items: [
       { label: 'Usuarios', icon: 'pi pi-fw pi-user', routerLink: '/admin/usuarios', permission: 'GET /api/users/' },
-      { label: 'Roles', icon: 'pi pi-fw pi-key', routerLink: '/admin/roles', permission: 'GET /api/roles/' },
+      { label: 'Roles y permisos', icon: 'pi pi-fw pi-shield', routerLink: '/admin/roles-permisos', permission: 'GET /api/roles/' },
       { label: 'Recursos', icon: 'pi pi-fw pi-server', routerLink: '/admin/recursos', permission: 'GET /api/resources/' },
-      { label: 'Asignaciones', icon: 'pi pi-fw pi-link', routerLink: '/admin/asignaciones', permission: 'GET /api/role-users/' },
-      { label: 'Permisos por rol', icon: 'pi pi-fw pi-shield', routerLink: '/admin/permisos', permission: 'GET /api/resource-roles/' },
     ],
   },
   {
